@@ -45,6 +45,9 @@ import { IdentityModule } from '@modules/identity';
 import { CatalogModule } from '@modules/catalog';
 import { OrdersModule } from '@modules/orders';
 
+// Projections (Read Models)
+import { ProjectionsModule } from './projections';
+
 @Module({
   imports: [
     // =========================================================================
@@ -86,6 +89,12 @@ import { OrdersModule } from '@modules/orders';
     IdentityModule, // Auth, Users, Roles
     CatalogModule, // Parts, Suppliers, Stock
     OrdersModule, // Orders, OrderItems
+
+    // =========================================================================
+    // Projections Module
+    // =========================================================================
+    // Gestion des Read Models (MongoDB + Neo4j)
+    ProjectionsModule,
   ],
 })
 export class AppModule {}
