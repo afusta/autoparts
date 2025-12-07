@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Package, ShoppingCart, TrendingUp, Users } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
-import { ordersApi, Order } from '@/lib/api';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Package, ShoppingCart, TrendingUp, Users } from "lucide-react";
+import { useAuthStore } from "@/lib/store";
+import { ordersApi, Order } from "@/lib/api";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -15,12 +15,12 @@ export default function DashboardPage() {
     const fetchOrders = async () => {
       try {
         const response =
-          user?.role === 'GARAGE'
-            ? await ordersApi.getMyOrders({ limit: 5 })
-            : await ordersApi.getSupplierOrders({ limit: 5 });
+          user?.role === "GARAGE"
+            ? await ordersApi.getMyOrders()
+            : await ordersApi.getSupplierOrders();
         setRecentOrders(response.data.items);
       } catch (error) {
-        console.error('Failed to fetch orders:', error);
+        console.error("Failed to fetch orders:", error);
       } finally {
         setIsLoading(false);
       }
@@ -33,29 +33,29 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      name: 'Commandes ce mois',
+      name: "Commandes ce mois",
       value: recentOrders.length,
       icon: ShoppingCart,
-      color: 'bg-blue-500',
+      color: "bg-blue-500",
     },
-    {
-      name: 'Pièces disponibles',
-      value: '1,234',
-      icon: Package,
-      color: 'bg-green-500',
-    },
-    {
-      name: 'Chiffre d\'affaires',
-      value: '12,450 €',
-      icon: TrendingUp,
-      color: 'bg-purple-500',
-    },
-    {
-      name: 'Partenaires',
-      value: '42',
-      icon: Users,
-      color: 'bg-orange-500',
-    },
+    // {
+    //   name: 'Pièces disponibles',
+    //   value: '1,234',
+    //   icon: Package,
+    //   color: 'bg-green-500',
+    // },
+    // {
+    //   name: 'Chiffre d\'affaires',
+    //   value: '12,450 €',
+    //   icon: TrendingUp,
+    //   color: 'bg-purple-500',
+    // },
+    // {
+    //   name: 'Partenaires',
+    //   value: '42',
+    //   icon: Users,
+    //   color: 'bg-orange-500',
+    // },
   ];
 
   return (
@@ -65,9 +65,9 @@ export default function DashboardPage() {
           Bienvenue, {user?.companyName}
         </h1>
         <p className="text-gray-600">
-          {user?.role === 'GARAGE'
-            ? 'Gérez vos commandes de pièces automobiles'
-            : 'Gérez votre catalogue et vos commandes'}
+          {user?.role === "GARAGE"
+            ? "Gérez vos commandes de pièces automobiles"
+            : "Gérez votre catalogue et vos commandes"}
         </p>
       </div>
 
@@ -101,9 +101,9 @@ export default function DashboardPage() {
             >
               <Package className="h-5 w-5 text-primary-600 mr-3" />
               <span className="font-medium text-gray-700">
-                {user?.role === 'GARAGE'
-                  ? 'Rechercher des pièces'
-                  : 'Gérer mon catalogue'}
+                {user?.role === "GARAGE"
+                  ? "Rechercher des pièces"
+                  : "Gérer mon catalogue"}
               </span>
             </Link>
             <Link
@@ -112,9 +112,9 @@ export default function DashboardPage() {
             >
               <ShoppingCart className="h-5 w-5 text-primary-600 mr-3" />
               <span className="font-medium text-gray-700">
-                {user?.role === 'GARAGE'
-                  ? 'Voir mes commandes'
-                  : 'Gérer les commandes reçues'}
+                {user?.role === "GARAGE"
+                  ? "Voir mes commandes"
+                  : "Gérer les commandes reçues"}
               </span>
             </Link>
           </div>

@@ -30,8 +30,9 @@ import { Module, Global } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventPublisherService } from './event-publisher.service';
+import { RABBITMQ_CLIENT } from './rabbitmq.constants';
 
-export const RABBITMQ_CLIENT = 'RABBITMQ_CLIENT';
+export { RABBITMQ_CLIENT };
 
 @Global()
 @Module({

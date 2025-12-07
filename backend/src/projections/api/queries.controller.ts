@@ -31,7 +31,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtAuthGuard, Roles, RolesGuard, CurrentUser } from '@modules/identity/api';
-import { UserRole } from '@modules/identity/domain/value-objects';
+import { UserRoleEnum } from '@modules/identity/domain/value-objects';
 import { PartRead } from '../mongo/schemas/part-read.schema';
 import { OrderRead } from '../mongo/schemas/order-read.schema';
 import { Neo4jProjectionService } from '../neo4j/services';
@@ -98,7 +98,7 @@ export class QueriesController {
     }
 
     // Filtre stock
-    if (inStock === true || inStock === 'true') {
+    if (inStock === true || String(inStock) === 'true') {
       filter['stock.isOutOfStock'] = false;
     }
 
@@ -161,7 +161,7 @@ export class QueriesController {
   // ===========================================================================
 
   @Get('my-orders')
-  @Roles(UserRole.GARAGE)
+  @Roles(UserRoleEnum.GARAGE)
   @ApiOperation({ summary: 'Mes commandes (Garage)' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -199,7 +199,7 @@ export class QueriesController {
   }
 
   @Get('supplier-orders')
-  @Roles(UserRole.SUPPLIER)
+  @Roles(UserRoleEnum.SUPPLIER)
   @ApiOperation({ summary: 'Commandes reçues (Supplier)' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -247,7 +247,7 @@ export class QueriesController {
   // ===========================================================================
 
   @Get('analytics/my-top-suppliers')
-  @Roles(UserRole.GARAGE)
+  @Roles(UserRoleEnum.GARAGE)
   @ApiOperation({ summary: 'Mes top fournisseurs (Garage)' })
   async getMyTopSuppliers(@CurrentUser() user: { userId: string }) {
     return this.neo4jProjection.findTopSuppliersForGarage(user.userId);
@@ -267,7 +267,7 @@ export class QueriesController {
   }
 
   @Get('analytics/graph-stats')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Statistiques du graphe (Admin)' })
   async getGraphStats() {
     return this.neo4jProjection.getGraphStats();

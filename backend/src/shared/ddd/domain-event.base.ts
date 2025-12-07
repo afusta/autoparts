@@ -58,6 +58,16 @@ export abstract class DomainEvent<Payload = unknown> {
    */
   abstract readonly eventName: string;
 
+  /** Raccourci vers l'ID de l'agrégat */
+  get aggregateId(): string {
+    return this.metadata.aggregateId;
+  }
+
+  /** Raccourci vers le timestamp de l'event */
+  get occurredOn(): Date {
+    return this.metadata.timestamp;
+  }
+
   constructor(
     payload: Payload,
     metadata: Partial<DomainEventMetadata> & {

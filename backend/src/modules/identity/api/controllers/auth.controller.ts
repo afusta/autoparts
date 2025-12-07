@@ -35,7 +35,10 @@ import {
   UserResponseDto,
 } from '../dtos';
 import { Public } from '../decorators/public.decorator';
-import { CurrentUser, AuthenticatedUser } from '../decorators/current-user.decorator';
+import {
+  CurrentUser,
+  AuthenticatedUser,
+} from '../decorators/current-user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('Identity')
@@ -64,7 +67,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
+  async register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
     const command = new RegisterUserCommand(
       dto.email,
       dto.password,
@@ -72,18 +75,10 @@ export class AuthController {
       dto.role,
     );
 
-    const result = await this.commandBus.execute(command);
+    await this.commandBus.execute(command);
 
-    return {
-      message: 'User registered successfully',
-      user: {
-        id: result.id,
-        email: result.email,
-        companyName: result.companyName,
-        role: result.role,
-        isActive: result.isActive,
-      },
-    };
+    // Auto-login after successful registration
+    return this.authService.login(dto.email, dto.password);
   }
 
   // ===========================================================================
@@ -122,7 +117,9 @@ export class AuthController {
     type: UserResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
+  async getProfile(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<UserResponseDto> {
     return {
       id: user.id,
       email: user.email,

@@ -5,13 +5,14 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && tsc-alias",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "start:worker": "nest start --entryFile worker",
+    "start": "node -r tsconfig-paths/register dist/main",
+    "start:dev": "ts-node -r tsconfig-paths/register src/main.ts",
+    "start:dev:watch": "nodemon --watch src --ext ts --exec \"ts-node -r tsconfig-paths/register src/main.ts\"",
+    "start:debug": "node --inspect -r tsconfig-paths/register dist/main",
+    "start:prod": "node -r tsconfig-paths/register dist/main",
+    "start:worker": "ts-node -r tsconfig-paths/register src/worker.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -70,6 +71,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsc-alias": "^1.8.8",
     "typescript": "^5.3.3"
   },
   "jest": {

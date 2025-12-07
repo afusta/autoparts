@@ -333,9 +333,9 @@ export class Neo4jProjectionService {
       { partId, limit },
     );
 
-    return result.map((record) => ({
+    return result.map((record: any) => ({
       partId: record.partId as string,
-      count: (record.count as { toNumber: () => number }).toNumber(),
+      count: typeof record.count === 'number' ? record.count : record.count.toNumber(),
     }));
   }
 
@@ -364,11 +364,11 @@ export class Neo4jProjectionService {
       { garageId, limit },
     );
 
-    return result.map((record) => ({
+    return result.map((record: any) => ({
       supplierId: record.supplierId as string,
       companyName: record.companyName as string,
-      orderCount: (record.orderCount as { toNumber: () => number }).toNumber(),
-      totalSpent: (record.totalSpent as { toNumber: () => number }).toNumber() / 100,
+      orderCount: typeof record.orderCount === 'number' ? record.orderCount : record.orderCount.toNumber(),
+      totalSpent: (typeof record.totalSpent === 'number' ? record.totalSpent : record.totalSpent.toNumber()) / 100,
     }));
   }
 
@@ -392,7 +392,7 @@ export class Neo4jProjectionService {
       { vehicleId, year },
     );
 
-    return result.map((record) => ({
+    return result.map((record: any) => ({
       partId: record.partId as string,
       name: record.name as string,
       category: record.category as string,
@@ -420,12 +420,12 @@ export class Neo4jProjectionService {
       return { users: 0, parts: 0, orders: 0, vehicles: 0 };
     }
 
-    const record = result[0];
+    const record = result[0] as any;
     return {
-      users: (record.users as { toNumber: () => number }).toNumber(),
-      parts: (record.parts as { toNumber: () => number }).toNumber(),
-      orders: (record.orders as { toNumber: () => number }).toNumber(),
-      vehicles: (record.vehicles as { toNumber: () => number }).toNumber(),
+      users: typeof record.users === 'number' ? record.users : record.users.toNumber(),
+      parts: typeof record.parts === 'number' ? record.parts : record.parts.toNumber(),
+      orders: typeof record.orders === 'number' ? record.orders : record.orders.toNumber(),
+      vehicles: typeof record.vehicles === 'number' ? record.vehicles : record.vehicles.toNumber(),
     };
   }
 }

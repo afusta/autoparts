@@ -4,21 +4,21 @@
 // Client Axios configuré pour communiquer avec le backend NestJS
 // =============================================================================
 
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError } from "axios";
 
-const API_URL = process.env.API_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: `${API_URL}/api/v1`,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Intercepteur pour ajouter le token JWT
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -31,9 +31,9 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);
@@ -53,7 +53,7 @@ export interface RegisterDto {
   email: string;
   password: string;
   companyName: string;
-  role: 'GARAGE' | 'SUPPLIER';
+  role: "GARAGE" | "SUPPLIER";
 }
 
 export interface AuthResponse {
@@ -67,9 +67,10 @@ export interface AuthResponse {
 }
 
 export const authApi = {
-  login: (data: LoginDto) => api.post<AuthResponse>('/auth/login', data),
-  register: (data: RegisterDto) => api.post<AuthResponse>('/auth/register', data),
-  me: () => api.get<AuthResponse['user']>('/auth/me'),
+  login: (data: LoginDto) => api.post<AuthResponse>("/auth/login", data),
+  register: (data: RegisterDto) =>
+    api.post<AuthResponse>("/auth/register", data),
+  me: () => api.get<AuthResponse["user"]>("/auth/me"),
 };
 
 // =============================================================================
@@ -126,10 +127,11 @@ export interface PaginatedResponse<T> {
 
 export const partsApi = {
   search: (params: PartsSearchParams) =>
-    api.get<PaginatedResponse<Part>>('/queries/parts', { params }),
+    api.get<PaginatedResponse<Part>>("/queries/parts", { params }),
   getById: (partId: string) => api.get<Part>(`/queries/parts/${partId}`),
-  create: (data: Partial<Part>) => api.post('/parts', data),
-  update: (partId: string, data: Partial<Part>) => api.patch(`/parts/${partId}`, data),
+  create: (data: Partial<Part>) => api.post("/parts", data),
+  update: (partId: string, data: Partial<Part>) =>
+    api.patch(`/parts/${partId}`, data),
 };
 
 // =============================================================================
@@ -173,10 +175,10 @@ export interface CreateOrderDto {
 
 export const ordersApi = {
   getMyOrders: (params?: { status?: string; page?: number }) =>
-    api.get<PaginatedResponse<Order>>('/queries/my-orders', { params }),
+    api.get<PaginatedResponse<Order>>("/queries/my-orders", { params }),
   getSupplierOrders: (params?: { status?: string; page?: number }) =>
-    api.get<PaginatedResponse<Order>>('/queries/supplier-orders', { params }),
-  create: (data: CreateOrderDto) => api.post('/orders', data),
+    api.get<PaginatedResponse<Order>>("/queries/supplier-orders", { params }),
+  create: (data: CreateOrderDto) => api.post("/orders", data),
   confirm: (orderId: string) => api.post(`/orders/${orderId}/confirm`),
   ship: (orderId: string) => api.post(`/orders/${orderId}/ship`),
   deliver: (orderId: string) => api.post(`/orders/${orderId}/deliver`),

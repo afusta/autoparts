@@ -29,12 +29,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import neo4j, { Driver, Session, Result } from 'neo4j-driver';
+import neo4j, { Driver, Session, ManagedTransaction } from 'neo4j-driver';
 
 @Injectable()
 export class Neo4jService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(Neo4jService.name);
-  private driver: Driver;
+  private driver!: Driver;
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -88,8 +88,8 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
   ): Promise<T[]> {
     const session = this.getSession();
     try {
-      const result: Result = await session.run(cypher, params);
-      return result.records.map((record) => record.toObject() as T);
+      const result = await session.run(cypher, params);
+      return result.records.map((record: any) => record.toObject() as T);
     } finally {
       await session.close();
     }
@@ -104,8 +104,8 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
   ): Promise<T[]> {
     const session = this.getSession();
     try {
-      const result: Result = await session.run(cypher, params);
-      return result.records.map((record) => record.toObject() as T);
+      const result = await session.run(cypher, params);
+      return result.records.map((record: any) => record.toObject() as T);
     } finally {
       await session.close();
     }
@@ -115,7 +115,7 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
    * Exécute plusieurs requêtes dans une transaction
    */
   async runInTransaction<T>(
-    work: (tx: neo4j.Transaction) => Promise<T>,
+    work: (tx: ManagedTransaction) => Promise<T>,
   ): Promise<T> {
     const session = this.getSession();
     try {

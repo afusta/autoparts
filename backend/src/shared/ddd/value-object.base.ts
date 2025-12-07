@@ -14,18 +14,11 @@
 // =============================================================================
 
 /**
- * Interface pour les props d'un Value Object
- */
-export interface ValueObjectProps {
-  [key: string]: unknown;
-}
-
-/**
  * Classe de base abstraite pour les Value Objects DDD
  *
  * @typeParam Props - Les propriétés du Value Object
  */
-export abstract class ValueObject<Props extends ValueObjectProps> {
+export abstract class ValueObject<Props> {
   protected readonly props: Props;
 
   constructor(props: Props) {

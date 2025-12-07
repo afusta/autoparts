@@ -11,19 +11,31 @@
 // la cohérence entre la persistance et la publication des events.
 // =============================================================================
 
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom, timeout, catchError } from 'rxjs';
 import { DomainEvent } from '@shared/ddd';
-import { RABBITMQ_CLIENT } from './rabbitmq.module';
+import { RABBITMQ_CLIENT } from './rabbitmq.constants';
 
 @Injectable()
-export class EventPublisherService {
+export class EventPublisherService implements OnModuleInit {
   private readonly logger = new Logger(EventPublisherService.name);
+  private isConnected = false;
 
   constructor(
     @Inject(RABBITMQ_CLIENT)
     private readonly client: ClientProxy,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    try {
+      await this.client.connect();
+      this.isConnected = true;
+      this.logger.log('Connected to RabbitMQ');
+    } catch (error) {
+      this.logger.warn('Failed to connect to RabbitMQ - events will not be published', error);
+    }
+  }
 
   /**
    * Publie un Domain Event sur RabbitMQ
@@ -33,20 +45,33 @@ export class EventPublisherService {
   async publish(event: DomainEvent): Promise<void> {
     const pattern = event.eventName; // Ex: "OrderCreated", "PartUpdated"
 
+    if (!this.isConnected) {
+      this.logger.warn(`RabbitMQ not connected - skipping event: ${pattern}`);
+      return;
+    }
+
     try {
       this.logger.debug(
         `Publishing event: ${pattern} (${event.metadata.eventId})`,
       );
 
-      // Emit est fire-and-forget (pas de réponse attendue)
-      this.client.emit(pattern, event.toJSON());
+      // emit() returns an Observable - must convert to Promise
+      await lastValueFrom(
+        this.client.emit(pattern, event.toJSON()).pipe(
+          timeout(5000),
+          catchError((err) => {
+            this.logger.error(`Failed to publish event: ${pattern}`, err);
+            throw err;
+          }),
+        ),
+      );
 
       this.logger.log(
         `Event published: ${pattern} for aggregate ${event.metadata.aggregateId}`,
       );
     } catch (error) {
       this.logger.error(`Failed to publish event: ${pattern}`, error);
-      throw error;
+      // Don't throw - allow the operation to complete even if event publishing fails
     }
   }
 

@@ -8,8 +8,8 @@
 
 FROM node:20-alpine AS base
 
-# Installer les dépendances système nécessaires
-RUN apk add --no-cache libc6-compat
+# Installer les dépendances système nécessaires pour compiler les modules natifs (bcrypt)
+RUN apk add --no-cache libc6-compat python3 make g++
 
 WORKDIR /app
 
@@ -22,7 +22,8 @@ COPY package*.json ./
 FROM base AS deps
 
 # Installer toutes les dépendances (dev + prod)
-RUN npm ci
+# --build-from-source force la recompilation des modules natifs
+RUN npm install --build-from-source
 
 # =============================================================================
 # Stage: Development
