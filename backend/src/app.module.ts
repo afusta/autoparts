@@ -42,7 +42,7 @@ import { RabbitMQModule } from '@infrastructure/rabbitmq';
 
 // Feature Modules
 import { IdentityModule } from '@modules/identity';
-// import { CatalogModule } from '@modules/catalog';
+import { CatalogModule } from '@modules/catalog';
 // import { OrdersModule } from '@modules/orders';
 
 @Module({
@@ -84,7 +84,7 @@ import { IdentityModule } from '@modules/identity';
     // =========================================================================
     // Bounded Contexts de notre domaine
     IdentityModule, // Auth, Users, Roles
-    // CatalogModule,   // Parts, Suppliers, Stock
+    CatalogModule, // Parts, Suppliers, Stock
     // OrdersModule,    // Orders, OrderItems
   ],
 })
