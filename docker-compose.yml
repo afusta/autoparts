@@ -1,0 +1,250 @@
+# =============================================================================
+# B2B Auto Parts Platform - Docker Compose
+# =============================================================================
+# Architecture: DDD + CQRS + Event-Driven
+#
+# Services:
+#   - api:       NestJS Backend (Write Model)
+#   - worker:    Event Handler Worker (Projections)
+#   - frontend:  NextJS Frontend
+#   - postgres:  Write Database (ACID transactions)
+#   - mongo:     Read Database (Fast queries)
+#   - neo4j:     Graph Database (Relations & Analytics)
+#   - rabbitmq:  Message Broker (Domain Events)
+#
+# Usage:
+#   docker-compose up --build
+#
+# Access:
+#   - API:      http://localhost:3000
+#   - Frontend: http://localhost:4000
+#   - Neo4j:    http://localhost:7474 (neo4j/password)
+#   - RabbitMQ: http://localhost:15672 (guest/guest)
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL - Write Database (Source of Truth)
+  # ---------------------------------------------------------------------------
+  # Stocke toutes les données transactionnelles avec garanties ACID
+  # Utilisé pour les opérations d'écriture (Commands)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: autoparts-postgres
+    environment:
+      POSTGRES_USER: autoparts
+      POSTGRES_PASSWORD: autoparts_secret
+      POSTGRES_DB: autoparts_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autoparts -d autoparts_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autoparts-network
+
+  # ---------------------------------------------------------------------------
+  # MongoDB - Read Database (Query Optimized)
+  # ---------------------------------------------------------------------------
+  # Documents dénormalisés pour des lectures rapides
+  # Projections des événements du domaine
+  # ---------------------------------------------------------------------------
+  mongo:
+    image: mongo:6
+    container_name: autoparts-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: autoparts
+      MONGO_INITDB_ROOT_PASSWORD: autoparts_secret
+      MONGO_INITDB_DATABASE: autoparts_read
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autoparts-network
+
+  # ---------------------------------------------------------------------------
+  # Neo4j - Graph Database (Relations & Analytics)
+  # ---------------------------------------------------------------------------
+  # Modélise les relations: Garage → Commande → Pièce → Fournisseur
+  # Utilisé pour les recommandations et analytics
+  # ---------------------------------------------------------------------------
+  neo4j:
+    image: neo4j:5
+    container_name: autoparts-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/password123
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"  # Browser HTTP
+      - "7687:7687"  # Bolt protocol
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autoparts-network
+
+  # ---------------------------------------------------------------------------
+  # RabbitMQ - Message Broker (Event Bus)
+  # ---------------------------------------------------------------------------
+  # Transport des Domain Events entre services
+  # Découplage entre Write et Read Models
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: autoparts-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: autoparts
+      RABBITMQ_DEFAULT_PASS: autoparts_secret
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autoparts-network
+
+  # ---------------------------------------------------------------------------
+  # NestJS API - Write Model (Commands)
+  # ---------------------------------------------------------------------------
+  # Gère les opérations d'écriture via CommandHandlers
+  # Publie les Domain Events vers RabbitMQ
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: autoparts-api
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # PostgreSQL
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: autoparts
+      POSTGRES_PASSWORD: autoparts_secret
+      POSTGRES_DB: autoparts_db
+      # MongoDB
+      MONGO_URI: mongodb://autoparts:autoparts_secret@mongo:27017/autoparts_read?authSource=admin
+      # Neo4j
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: password123
+      # RabbitMQ
+      RABBITMQ_URI: amqp://autoparts:autoparts_secret@rabbitmq:5672
+      # JWT
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 1d
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - autoparts-network
+    command: npm run start:dev
+
+  # ---------------------------------------------------------------------------
+  # NestJS Worker - Event Handler (Projections)
+  # ---------------------------------------------------------------------------
+  # Consomme les Domain Events depuis RabbitMQ
+  # Met à jour les Read Models (MongoDB & Neo4j)
+  # ---------------------------------------------------------------------------
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: autoparts-worker
+    environment:
+      NODE_ENV: development
+      WORKER_MODE: "true"
+      # MongoDB
+      MONGO_URI: mongodb://autoparts:autoparts_secret@mongo:27017/autoparts_read?authSource=admin
+      # Neo4j
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: password123
+      # RabbitMQ
+      RABBITMQ_URI: amqp://autoparts:autoparts_secret@rabbitmq:5672
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - autoparts-network
+    command: npm run start:worker
+
+  # ---------------------------------------------------------------------------
+  # NextJS Frontend - UI
+  # ---------------------------------------------------------------------------
+  # Interface utilisateur minimaliste
+  # Consomme l'API NestJS
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: autoparts-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    ports:
+      - "4000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api
+    networks:
+      - autoparts-network
+    command: npm run dev
+
+# =============================================================================
+# Volumes persistants
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+# =============================================================================
+# Network
+# =============================================================================
+networks:
+  autoparts-network:
+    driver: bridge
