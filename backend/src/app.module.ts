@@ -40,8 +40,8 @@ import { MongoModule } from '@infrastructure/mongo';
 import { Neo4jModule } from '@infrastructure/neo4j';
 import { RabbitMQModule } from '@infrastructure/rabbitmq';
 
-// Feature Modules (seront implémentés ensuite)
-// import { IdentityModule } from '@modules/identity';
+// Feature Modules
+import { IdentityModule } from '@modules/identity';
 // import { CatalogModule } from '@modules/catalog';
 // import { OrdersModule } from '@modules/orders';
 
@@ -82,8 +82,8 @@ import { RabbitMQModule } from '@infrastructure/rabbitmq';
     // =========================================================================
     // Feature Modules
     // =========================================================================
-    // Bounded Contexts de notre domaine (à implémenter)
-    // IdentityModule,  // Auth, Users, Roles
+    // Bounded Contexts de notre domaine
+    IdentityModule, // Auth, Users, Roles
     // CatalogModule,   // Parts, Suppliers, Stock
     // OrdersModule,    // Orders, OrderItems
   ],
