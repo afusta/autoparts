@@ -43,7 +43,7 @@ import { RabbitMQModule } from '@infrastructure/rabbitmq';
 // Feature Modules
 import { IdentityModule } from '@modules/identity';
 import { CatalogModule } from '@modules/catalog';
-// import { OrdersModule } from '@modules/orders';
+import { OrdersModule } from '@modules/orders';
 
 @Module({
   imports: [
@@ -85,7 +85,7 @@ import { CatalogModule } from '@modules/catalog';
     // Bounded Contexts de notre domaine
     IdentityModule, // Auth, Users, Roles
     CatalogModule, // Parts, Suppliers, Stock
-    // OrdersModule,    // Orders, OrderItems
+    OrdersModule, // Orders, OrderItems
   ],
 })
 export class AppModule {}
