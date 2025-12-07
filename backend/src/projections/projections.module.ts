@@ -32,7 +32,7 @@ import { UserRead, UserReadSchema } from './mongo/schemas/user-read.schema';
 import { MongoProjectionService } from './mongo/services';
 import { Neo4jProjectionService } from './neo4j/services';
 
-// Event Handlers
+// Event Handlers (CQRS internal events)
 import {
   UserProjectionHandler,
   PartCreatedProjectionHandler,
@@ -41,6 +41,9 @@ import {
   OrderCreatedProjectionHandler,
   OrderStatusChangedProjectionHandler,
 } from './handlers';
+
+// Event Consumer (RabbitMQ microservice)
+import { EventConsumerController } from './handlers/event-consumer.controller';
 
 // API Controller
 import { QueriesController } from './api';
@@ -63,7 +66,7 @@ const EventHandlers = [
       { name: UserRead.name, schema: UserReadSchema },
     ]),
   ],
-  controllers: [QueriesController],
+  controllers: [QueriesController, EventConsumerController],
   providers: [
     // Projection Services
     MongoProjectionService,

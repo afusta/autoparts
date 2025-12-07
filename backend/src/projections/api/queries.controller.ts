@@ -30,7 +30,12 @@ import {
 } from '@nestjs/swagger';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { JwtAuthGuard, Roles, RolesGuard, CurrentUser } from '@modules/identity/api';
+import {
+  JwtAuthGuard,
+  Roles,
+  RolesGuard,
+  CurrentUser,
+} from '@modules/identity/api';
 import { UserRoleEnum } from '@modules/identity/domain/value-objects';
 import { PartRead } from '../mongo/schemas/part-read.schema';
 import { OrderRead } from '../mongo/schemas/order-read.schema';
@@ -55,7 +60,11 @@ export class QueriesController {
 
   @Get('parts')
   @ApiOperation({ summary: 'Rechercher des pièces (Read Model optimisé)' })
-  @ApiQuery({ name: 'search', required: false, description: 'Recherche textuelle' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Recherche textuelle',
+  })
   @ApiQuery({ name: 'category', required: false })
   @ApiQuery({ name: 'brand', required: false })
   @ApiQuery({ name: 'minPrice', required: false, type: Number })
@@ -90,11 +99,16 @@ export class QueriesController {
     if (category) filter.category = category;
     if (brand) filter.brand = brand;
 
-    // Filtre prix
-    if (minPrice !== undefined || maxPrice !== undefined) {
+    // Filtre prix (validate numbers to avoid NaN)
+    const minPriceNum = minPrice !== undefined ? Number(minPrice) : NaN;
+    const maxPriceNum = maxPrice !== undefined ? Number(maxPrice) : NaN;
+
+    if (!isNaN(minPriceNum) || !isNaN(maxPriceNum)) {
       filter.price = {};
-      if (minPrice !== undefined) (filter.price as Record<string, number>).$gte = Number(minPrice);
-      if (maxPrice !== undefined) (filter.price as Record<string, number>).$lte = Number(maxPrice);
+      if (!isNaN(minPriceNum))
+        (filter.price as Record<string, number>).$gte = minPriceNum;
+      if (!isNaN(maxPriceNum))
+        (filter.price as Record<string, number>).$lte = maxPriceNum;
     }
 
     // Filtre stock
@@ -105,11 +119,17 @@ export class QueriesController {
     // Filtre véhicule compatible
     if (vehicleBrand || vehicleModel || vehicleYear) {
       const vehicleFilter: Record<string, unknown> = {};
-      if (vehicleBrand) vehicleFilter['compatibleVehicles.brand'] = vehicleBrand;
-      if (vehicleModel) vehicleFilter['compatibleVehicles.model'] = vehicleModel;
+      if (vehicleBrand)
+        vehicleFilter['compatibleVehicles.brand'] = vehicleBrand;
+      if (vehicleModel)
+        vehicleFilter['compatibleVehicles.model'] = vehicleModel;
       if (vehicleYear) {
-        vehicleFilter['compatibleVehicles.yearFrom'] = { $lte: Number(vehicleYear) };
-        vehicleFilter['compatibleVehicles.yearTo'] = { $gte: Number(vehicleYear) };
+        vehicleFilter['compatibleVehicles.yearFrom'] = {
+          $lte: Number(vehicleYear),
+        };
+        vehicleFilter['compatibleVehicles.yearTo'] = {
+          $gte: Number(vehicleYear),
+        };
       }
       Object.assign(filter, vehicleFilter);
     }
@@ -138,7 +158,7 @@ export class QueriesController {
   }
 
   @Get('parts/:partId')
-  @ApiOperation({ summary: 'Détail d\'une pièce (Read Model)' })
+  @ApiOperation({ summary: "Détail d'une pièce (Read Model)" })
   @ApiParam({ name: 'partId', description: 'ID de la pièce' })
   async getPartDetail(@Param('partId') partId: string) {
     const part = await this.partModel.findOne({ partId }).exec();
@@ -148,7 +168,8 @@ export class QueriesController {
     }
 
     // Enrichir avec les pièces souvent commandées ensemble (depuis Neo4j)
-    const frequentlyOrderedWith = await this.neo4jProjection.findFrequentlyOrderedTogether(partId, 5);
+    const frequentlyOrderedWith =
+      await this.neo4jProjection.findFrequentlyOrderedTogether(partId, 5);
 
     return {
       ...part.toObject(),
@@ -167,12 +188,12 @@ export class QueriesController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getMyOrders(
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { id: string },
     @Query('status') status?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const filter: Record<string, unknown> = { 'garage.id': user.userId };
+    const filter: Record<string, unknown> = { 'garage.id': user.id };
     if (status) filter.status = status;
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -205,12 +226,12 @@ export class QueriesController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getSupplierOrders(
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { id: string },
     @Query('status') status?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const filter: Record<string, unknown> = { supplierIds: user.userId };
+    const filter: Record<string, unknown> = { supplierIds: user.id };
     if (status) filter.status = status;
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -228,7 +249,7 @@ export class QueriesController {
     // Filtrer les lignes pour ne montrer que celles du supplier
     const filteredItems = items.map((order) => ({
       ...order.toObject(),
-      lines: order.lines.filter((line) => line.supplierId === user.userId),
+      lines: order.lines.filter((line) => line.supplierId === user.id),
     }));
 
     return {
@@ -249,12 +270,14 @@ export class QueriesController {
   @Get('analytics/my-top-suppliers')
   @Roles(UserRoleEnum.GARAGE)
   @ApiOperation({ summary: 'Mes top fournisseurs (Garage)' })
-  async getMyTopSuppliers(@CurrentUser() user: { userId: string }) {
-    return this.neo4jProjection.findTopSuppliersForGarage(user.userId);
+  async getMyTopSuppliers(@CurrentUser() user: { id: string }) {
+    return this.neo4jProjection.findTopSuppliersForGarage(user.id);
   }
 
   @Get('analytics/parts-for-vehicle')
-  @ApiOperation({ summary: 'Pièces compatibles avec un véhicule (Neo4j Graph)' })
+  @ApiOperation({
+    summary: 'Pièces compatibles avec un véhicule (Neo4j Graph)',
+  })
   @ApiQuery({ name: 'brand', required: true })
   @ApiQuery({ name: 'model', required: true })
   @ApiQuery({ name: 'year', required: true, type: Number })

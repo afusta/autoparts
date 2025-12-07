@@ -38,7 +38,11 @@ import {
   IPartRepository,
   PART_REPOSITORY,
 } from '../../domain/repositories/part.repository.interface';
-import { CreatePartCommand, UpdatePartCommand, AddStockCommand } from '../../application/commands';
+import {
+  CreatePartCommand,
+  UpdatePartCommand,
+  AddStockCommand,
+} from '../../application/commands';
 import {
   CreatePartDto,
   UpdatePartDto,
@@ -49,7 +53,10 @@ import {
 } from '../dtos';
 import { JwtAuthGuard, RolesGuard } from '@modules/identity/api/guards';
 import { Roles } from '@modules/identity/api/decorators/roles.decorator';
-import { CurrentUser, AuthenticatedUser } from '@modules/identity/api/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  AuthenticatedUser,
+} from '@modules/identity/api/decorators/current-user.decorator';
 import { UserRoleEnum } from '@modules/identity/domain/value-objects';
 
 @ApiTags('Catalog')
@@ -88,7 +95,9 @@ export class PartsController {
       dto.compatibleVehicles,
     );
 
-    const part = await this.commandBus.execute<CreatePartCommand, Part>(command);
+    const part = await this.commandBus.execute<CreatePartCommand, Part>(
+      command,
+    );
     return this.toResponse(part);
   }
 
@@ -98,7 +107,9 @@ export class PartsController {
   @Get()
   @ApiOperation({ summary: 'Search parts', description: 'Public endpoint' })
   @ApiResponse({ status: 200, type: PaginatedPartsResponseDto })
-  async searchParts(@Query() query: SearchPartsDto): Promise<PaginatedPartsResponseDto> {
+  async searchParts(
+    @Query() query: SearchPartsDto,
+  ): Promise<PaginatedPartsResponseDto> {
     const result = await this.partRepository.search(
       {
         search: query.search,
@@ -177,7 +188,10 @@ export class PartsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoleEnum.SUPPLIER)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a part', description: 'Supplier owner only' })
+  @ApiOperation({
+    summary: 'Update a part',
+    description: 'Supplier owner only',
+  })
   @ApiParam({ name: 'id', type: 'string' })
   @ApiResponse({ status: 200, type: PartResponseDto })
   async updatePart(
@@ -193,7 +207,9 @@ export class PartsController {
       brand: dto.brand,
     });
 
-    const part = await this.commandBus.execute<UpdatePartCommand, Part>(command);
+    const part = await this.commandBus.execute<UpdatePartCommand, Part>(
+      command,
+    );
     return this.toResponse(part);
   }
 

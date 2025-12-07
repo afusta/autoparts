@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Filter, ShoppingCart, Package } from 'lucide-react';
-import { partsApi, Part, PaginatedResponse } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { Search, Filter, ShoppingCart, Package, Plus, X } from 'lucide-react';
+import { partsApi, ordersApi, Part, CreatePartDto, VehicleCompatibility } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 
 export default function PartsPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [parts, setParts] = useState<Part[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
@@ -13,6 +15,28 @@ export default function PartsPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [cart, setCart] = useState<Map<string, number>>(new Map());
+  const [isOrdering, setIsOrdering] = useState(false);
+
+  // Create Part Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [newPart, setNewPart] = useState<CreatePartDto>({
+    reference: '',
+    name: '',
+    description: '',
+    category: '',
+    brand: '',
+    price: 0,
+    initialStock: 0,
+    compatibleVehicles: [],
+  });
+  const [newVehicle, setNewVehicle] = useState<VehicleCompatibility>({
+    brand: '',
+    model: '',
+    yearFrom: 2020,
+    yearTo: 2024,
+  });
 
   const categories = [
     'Freinage',
@@ -76,6 +100,72 @@ export default function PartsPage() {
     return total + (part?.price || 0) * qty;
   }, 0);
 
+  // Create Order Handler
+  const handleCreateOrder = async () => {
+    if (cart.size === 0) return;
+
+    setIsOrdering(true);
+    try {
+      const lines = Array.from(cart.entries()).map(([partId, quantity]) => ({
+        partId,
+        quantity,
+      }));
+
+      await ordersApi.create({ lines });
+      setCart(new Map());
+      router.push('/orders');
+    } catch (error: any) {
+      console.error('Failed to create order:', error);
+      alert(error.response?.data?.message || 'Erreur lors de la création de la commande');
+    } finally {
+      setIsOrdering(false);
+    }
+  };
+
+  // Create Part Handler
+  const handleCreatePart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+    setCreateError('');
+
+    try {
+      await partsApi.create(newPart);
+      setShowCreateModal(false);
+      setNewPart({
+        reference: '',
+        name: '',
+        description: '',
+        category: '',
+        brand: '',
+        price: 0,
+        initialStock: 0,
+        compatibleVehicles: [],
+      });
+      fetchParts(1); // Refresh the list
+    } catch (error: any) {
+      setCreateError(error.response?.data?.message || 'Failed to create part');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const addVehicleCompatibility = () => {
+    if (newVehicle.brand && newVehicle.model) {
+      setNewPart((prev) => ({
+        ...prev,
+        compatibleVehicles: [...prev.compatibleVehicles, { ...newVehicle }],
+      }));
+      setNewVehicle({ brand: '', model: '', yearFrom: 2020, yearTo: 2024 });
+    }
+  };
+
+  const removeVehicleCompatibility = (index: number) => {
+    setNewPart((prev) => ({
+      ...prev,
+      compatibleVehicles: prev.compatibleVehicles.filter((_, i) => i !== index),
+    }));
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -85,6 +175,16 @@ export default function PartsPage() {
             {pagination.total} pièces disponibles
           </p>
         </div>
+
+        {user?.role === 'SUPPLIER' && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Ajouter une pièce</span>
+          </button>
+        )}
 
         {user?.role === 'GARAGE' && cart.size > 0 && (
           <div className="card flex items-center space-x-4">
@@ -98,7 +198,13 @@ export default function PartsPage() {
                 })}
               </p>
             </div>
-            <button className="btn-primary">Commander</button>
+            <button
+              onClick={handleCreateOrder}
+              disabled={isOrdering}
+              className="btn-primary disabled:opacity-50"
+            >
+              {isOrdering ? 'Commande...' : 'Commander'}
+            </button>
           </div>
         )}
       </div>
@@ -240,6 +346,218 @@ export default function PartsPage() {
         <div className="text-center py-12">
           <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">Aucune pièce trouvée</p>
+        </div>
+      )}
+
+      {/* Create Part Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold">Ajouter une pièce</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreatePart} className="p-6 space-y-4">
+              {createError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                  {createError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Référence *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newPart.reference}
+                    onChange={(e) => setNewPart({ ...newPart, reference: e.target.value })}
+                    placeholder="BOSCH-FLT-12345"
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newPart.name}
+                    onChange={(e) => setNewPart({ ...newPart, name: e.target.value })}
+                    placeholder="Filtre à huile BOSCH"
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newPart.description}
+                  onChange={(e) => setNewPart({ ...newPart, description: e.target.value })}
+                  placeholder="Description détaillée de la pièce..."
+                  rows={3}
+                  className="input"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Catégorie *
+                  </label>
+                  <select
+                    required
+                    value={newPart.category}
+                    onChange={(e) => setNewPart({ ...newPart, category: e.target.value })}
+                    className="input"
+                  >
+                    <option value="">Sélectionner...</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Marque *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newPart.brand}
+                    onChange={(e) => setNewPart({ ...newPart, brand: e.target.value })}
+                    placeholder="BOSCH"
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prix (EUR) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0.01"
+                    step="0.01"
+                    value={newPart.price || ''}
+                    onChange={(e) => setNewPart({ ...newPart, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="12.99"
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Stock initial *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={newPart.initialStock || ''}
+                    onChange={(e) => setNewPart({ ...newPart, initialStock: parseInt(e.target.value) || 0 })}
+                    placeholder="50"
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              {/* Vehicle Compatibility */}
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Véhicules compatibles
+                </label>
+
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={newVehicle.brand}
+                    onChange={(e) => setNewVehicle({ ...newVehicle, brand: e.target.value })}
+                    placeholder="Marque"
+                    className="input text-sm"
+                  />
+                  <input
+                    type="text"
+                    value={newVehicle.model}
+                    onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })}
+                    placeholder="Modèle"
+                    className="input text-sm"
+                  />
+                  <input
+                    type="number"
+                    value={newVehicle.yearFrom}
+                    onChange={(e) => setNewVehicle({ ...newVehicle, yearFrom: parseInt(e.target.value) })}
+                    placeholder="Année début"
+                    className="input text-sm"
+                  />
+                  <input
+                    type="number"
+                    value={newVehicle.yearTo}
+                    onChange={(e) => setNewVehicle({ ...newVehicle, yearTo: parseInt(e.target.value) })}
+                    placeholder="Année fin"
+                    className="input text-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addVehicleCompatibility}
+                  className="btn-secondary text-sm"
+                >
+                  + Ajouter véhicule
+                </button>
+
+                {newPart.compatibleVehicles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {newPart.compatibleVehicles.map((v, i) => (
+                      <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                        <span className="text-sm">
+                          {v.brand} {v.model} ({v.yearFrom}-{v.yearTo})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeVehicleCompatibility(i)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="btn-secondary"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="btn-primary disabled:opacity-50"
+                >
+                  {isCreating ? 'Création...' : 'Créer la pièce'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

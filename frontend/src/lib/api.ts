@@ -115,6 +115,25 @@ export interface PartsSearchParams {
   limit?: number;
 }
 
+export interface VehicleCompatibility {
+  brand: string;
+  model: string;
+  yearFrom: number;
+  yearTo: number;
+  engine?: string;
+}
+
+export interface CreatePartDto {
+  reference: string;
+  name: string;
+  description?: string;
+  category: string;
+  brand: string;
+  price: number;
+  initialStock: number;
+  compatibleVehicles: VehicleCompatibility[];
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   pagination: {
@@ -129,9 +148,9 @@ export const partsApi = {
   search: (params: PartsSearchParams) =>
     api.get<PaginatedResponse<Part>>("/queries/parts", { params }),
   getById: (partId: string) => api.get<Part>(`/queries/parts/${partId}`),
-  create: (data: Partial<Part>) => api.post("/parts", data),
-  update: (partId: string, data: Partial<Part>) =>
-    api.patch(`/parts/${partId}`, data),
+  create: (data: CreatePartDto) => api.post<Part>("/parts", data),
+  update: (partId: string, data: Partial<CreatePartDto>) =>
+    api.patch<Part>(`/parts/${partId}`, data),
 };
 
 // =============================================================================

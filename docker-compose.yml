@@ -187,6 +187,12 @@ services:
     environment:
       NODE_ENV: development
       WORKER_MODE: "true"
+      # PostgreSQL (required by AppModule)
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: autoparts
+      POSTGRES_PASSWORD: autoparts_secret
+      POSTGRES_DB: autoparts_db
       # MongoDB
       MONGO_URI: mongodb://autoparts:autoparts_secret@mongo:27017/autoparts_read?authSource=admin
       # Neo4j
