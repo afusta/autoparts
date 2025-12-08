@@ -49,7 +49,7 @@ Plateforme B2B de commande de pièces automobiles entre garages et fournisseurs.
 ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
 │   PostgreSQL    │      │    RabbitMQ     │      │     MongoDB     │
 │  (Write Model)  │      │  (Event Bus)    │      │  (Read Model)   │
-│   :5432         │      │   :5672/:15672  │      │    :27017       │
+│   :5433         │      │   :5672/:15672  │      │    :27017       │
 └─────────────────┘      └─────────────────┘      └─────────────────┘
                                                           │
                                                           │
@@ -345,6 +345,12 @@ docker-compose up -d --build
 # Vérifier que tous les services sont healthy
 docker-compose ps
 
+# Charger les données de test (thème Cars de Disney!)
+cd backend
+npm install
+npm run seed
+cd ..
+
 # Voir les logs de l'API
 docker-compose logs -f api
 ```
@@ -358,6 +364,36 @@ docker-compose logs -f api
 | **Swagger** | http://localhost:3000/api | - |
 | **RabbitMQ** | http://localhost:15672 | guest / guest |
 | **Neo4j Browser** | http://localhost:7474 | neo4j / password123 |
+
+### Comptes de test (après `npm run seed`)
+
+Le script de seed crée des utilisateurs inspirés du film Cars de Disney:
+
+**Garages** (peuvent commander des pièces):
+
+| Email | Mot de passe | Entreprise |
+|-------|--------------|------------|
+| luigi@casadellatires.com | LuigiTires123 | Luigi's Casa Della Tires |
+| ramone@houseofbodyart.com | Ramone2023! | Ramone's House of Body Art |
+| doc@hudsonracing.com | DocHudson51 | Doc Hudson's Racing Clinic |
+| flo@v8cafe.com | FloV8Cafe123 | Flo's V8 Cafe & Service |
+| mater@towmater.com | TowMater123! | Mater's Towing & Salvage |
+
+**Fournisseurs** (peuvent gérer le catalogue):
+
+| Email | Mot de passe | Entreprise |
+|-------|--------------|------------|
+| sales@rusteze.com | Rusteze2023! | Rust-eze Medicated Bumper Ointment |
+| parts@dinoco.com | Dinoco2023! | Dinoco Oil Company |
+| wholesale@lightyeartires.com | Lightyear123 | Lightyear Tires |
+| racing@pistoncup.com | PistonCup123 | Piston Cup Racing Parts |
+| fillmore@organicfuel.com | Organic2023! | Fillmore's Organic Fuel |
+
+**Admin**:
+
+| Email | Mot de passe |
+|-------|--------------|
+| admin@radiatorsprings.com | Admin2023! |
 
 ### Développement local (sans Docker)
 
@@ -797,7 +833,7 @@ PORT=3000
 
 # PostgreSQL
 POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
+POSTGRES_PORT=5433
 POSTGRES_USER=autoparts
 POSTGRES_PASSWORD=autoparts_secret
 POSTGRES_DB=autoparts_db
@@ -816,6 +852,39 @@ RABBITMQ_URI=amqp://autoparts:autoparts_secret@localhost:5672
 # JWT
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRES_IN=1d
+```
+
+---
+
+## Troubleshooting
+
+### Conflit de port PostgreSQL
+
+Le projet utilise le port **5433** (au lieu du 5432 standard) pour éviter les conflits avec une installation PostgreSQL locale. Si vous avez modifié ce port, assurez-vous qu'il est cohérent dans:
+- `docker-compose.yml`
+- `backend/.env`
+- `.env.example`
+
+### Réinitialiser toutes les données
+
+```bash
+# Supprimer tous les volumes et redémarrer
+docker-compose down -v
+docker-compose up -d --build
+
+# Attendre que les services soient prêts, puis recharger les données
+cd backend && npm run seed
+```
+
+### Voir les logs
+
+```bash
+# Tous les services
+docker-compose logs -f
+
+# Service spécifique
+docker-compose logs -f api
+docker-compose logs -f worker
 ```
 
 ---

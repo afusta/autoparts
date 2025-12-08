@@ -20,7 +20,8 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate -d src/infrastructure/postgres/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/infrastructure/postgres/data-source.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d src/infrastructure/postgres/data-source.ts"
+    "migration:revert": "npm run typeorm -- migration:revert -d src/infrastructure/postgres/data-source.ts",
+    "seed": "ts-node -r tsconfig-paths/register src/scripts/seed-cars-data.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",

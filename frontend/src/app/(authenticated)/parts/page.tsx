@@ -2,8 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Filter, ShoppingCart, Package, Plus, X } from 'lucide-react';
-import { partsApi, ordersApi, Part, CreatePartDto, VehicleCompatibility } from '@/lib/api';
+import Link from 'next/link';
+import {
+  Search,
+  Filter,
+  ShoppingCart,
+  Package,
+  Plus,
+  X,
+  Edit,
+  PackagePlus,
+  Eye,
+  Car,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+import {
+  partsApi,
+  ordersApi,
+  Part,
+  CreatePartDto,
+  UpdatePartDto,
+  VehicleCompatibility,
+} from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 
 export default function PartsPage() {
@@ -16,6 +37,16 @@ export default function PartsPage() {
   const [category, setCategory] = useState('');
   const [cart, setCart] = useState<Map<string, number>>(new Map());
   const [isOrdering, setIsOrdering] = useState(false);
+
+  // Advanced Filters State
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [brand, setBrand] = useState('');
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [vehicleBrand, setVehicleBrand] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [vehicleYear, setVehicleYear] = useState('');
 
   // Create Part Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -38,6 +69,20 @@ export default function PartsPage() {
     yearTo: 2024,
   });
 
+  // Edit Part Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPart, setEditingPart] = useState<Part | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState('');
+  const [editData, setEditData] = useState<UpdatePartDto>({});
+
+  // Stock Modal State
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockPart, setStockPart] = useState<Part | null>(null);
+  const [stockQuantity, setStockQuantity] = useState(0);
+  const [isAddingStock, setIsAddingStock] = useState(false);
+  const [stockError, setStockError] = useState('');
+
   const categories = [
     'Freinage',
     'Moteur',
@@ -53,6 +98,10 @@ export default function PartsPage() {
       const response = await partsApi.search({
         search: search || undefined,
         category: category || undefined,
+        brand: brand || undefined,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        inStock: inStockOnly || undefined,
         page,
         limit: 12,
       });
@@ -67,10 +116,27 @@ export default function PartsPage() {
 
   useEffect(() => {
     fetchParts();
-  }, [category]);
+  }, [category, inStockOnly]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    fetchParts(1);
+  };
+
+  const handleAdvancedSearch = () => {
+    fetchParts(1);
+  };
+
+  const clearFilters = () => {
+    setSearch('');
+    setCategory('');
+    setBrand('');
+    setMinPrice('');
+    setMaxPrice('');
+    setInStockOnly(false);
+    setVehicleBrand('');
+    setVehicleModel('');
+    setVehicleYear('');
     fetchParts(1);
   };
 
@@ -141,7 +207,7 @@ export default function PartsPage() {
         initialStock: 0,
         compatibleVehicles: [],
       });
-      fetchParts(1); // Refresh the list
+      fetchParts(1);
     } catch (error: any) {
       setCreateError(error.response?.data?.message || 'Failed to create part');
     } finally {
@@ -166,14 +232,72 @@ export default function PartsPage() {
     }));
   };
 
+  // Edit Part Handlers
+  const openEditModal = (part: Part) => {
+    setEditingPart(part);
+    setEditData({
+      name: part.name,
+      description: part.description,
+      category: part.category,
+      brand: part.brand,
+      price: part.price,
+    });
+    setUpdateError('');
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPart) return;
+
+    setIsUpdating(true);
+    setUpdateError('');
+
+    try {
+      await partsApi.update(editingPart.partId, editData);
+      setShowEditModal(false);
+      setEditingPart(null);
+      fetchParts(pagination.page);
+    } catch (error: any) {
+      setUpdateError(error.response?.data?.message || 'Failed to update part');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Stock Handlers
+  const openStockModal = (part: Part) => {
+    setStockPart(part);
+    setStockQuantity(0);
+    setStockError('');
+    setShowStockModal(true);
+  };
+
+  const handleAddStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stockPart || stockQuantity <= 0) return;
+
+    setIsAddingStock(true);
+    setStockError('');
+
+    try {
+      await partsApi.addStock(stockPart.partId, stockQuantity);
+      setShowStockModal(false);
+      setStockPart(null);
+      fetchParts(pagination.page);
+    } catch (error: any) {
+      setStockError(error.response?.data?.message || 'Failed to add stock');
+    } finally {
+      setIsAddingStock(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Catalogue de pièces</h1>
-          <p className="text-gray-600">
-            {pagination.total} pièces disponibles
-          </p>
+          <p className="text-gray-600">{pagination.total} pièces disponibles</p>
         </div>
 
         {user?.role === 'SUPPLIER' && (
@@ -240,7 +364,136 @@ export default function PartsPage() {
               ))}
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="btn-secondary flex items-center space-x-2"
+          >
+            {showAdvancedFilters ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+            <span>Filtres avancés</span>
+          </button>
         </div>
+
+        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Price Range */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prix min (EUR)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="0"
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prix max (EUR)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  placeholder="1000"
+                  className="input"
+                />
+              </div>
+
+              {/* Brand Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Marque
+                </label>
+                <input
+                  type="text"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder="Ex: BOSCH"
+                  className="input"
+                />
+              </div>
+
+              {/* In Stock Only */}
+              <div className="flex items-end">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={inStockOnly}
+                    onChange={(e) => setInStockOnly(e.target.checked)}
+                    className="h-4 w-4 text-primary-600 rounded border-gray-300"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    En stock uniquement
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Vehicle Compatibility Filter */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-2 mb-3">
+                <Car className="h-5 w-5 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">
+                  Filtrer par véhicule compatible
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  value={vehicleBrand}
+                  onChange={(e) => setVehicleBrand(e.target.value)}
+                  placeholder="Marque (ex: Renault)"
+                  className="input"
+                />
+                <input
+                  type="text"
+                  value={vehicleModel}
+                  onChange={(e) => setVehicleModel(e.target.value)}
+                  placeholder="Modèle (ex: Clio)"
+                  className="input"
+                />
+                <input
+                  type="number"
+                  value={vehicleYear}
+                  onChange={(e) => setVehicleYear(e.target.value)}
+                  placeholder="Année (ex: 2020)"
+                  className="input"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="btn-secondary"
+              >
+                Réinitialiser
+              </button>
+              <button
+                type="button"
+                onClick={handleAdvancedSearch}
+                className="btn-primary"
+              >
+                Appliquer les filtres
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Parts Grid */}
@@ -269,7 +522,7 @@ export default function PartsPage() {
                 <h3 className="font-semibold text-gray-900 mb-1">{part.name}</h3>
                 <p className="text-sm text-gray-500 mb-2">{part.reference}</p>
                 <p className="text-xs text-gray-400 mb-3">
-                  {part.brand} • {part.category}
+                  {part.brand} - {part.category}
                 </p>
 
                 <div className="flex items-center justify-between mb-3">
@@ -285,38 +538,90 @@ export default function PartsPage() {
                   Fournisseur: {part.supplier.name}
                 </p>
 
-                {user?.role === 'GARAGE' && (
-                  <div className="flex items-center space-x-2">
-                    {cart.has(part.partId) ? (
-                      <>
-                        <button
-                          onClick={() => removeFromCart(part.partId)}
-                          className="btn-secondary px-3"
-                        >
-                          -
-                        </button>
-                        <span className="px-3 font-medium">
-                          {cart.get(part.partId)}
+                {/* Vehicle Compatibility Preview */}
+                {part.compatibleVehicles && part.compatibleVehicles.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-400 mb-1">Véhicules compatibles:</p>
+                    <p className="text-xs text-gray-600">
+                      {part.compatibleVehicles.slice(0, 2).map((v, i) => (
+                        <span key={i}>
+                          {v.brand} {v.model}
+                          {i < Math.min(part.compatibleVehicles.length, 2) - 1 ? ', ' : ''}
                         </span>
-                        <button
-                          onClick={() => addToCart(part.partId)}
-                          className="btn-secondary px-3"
-                          disabled={part.stock.isOutOfStock}
-                        >
-                          +
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => addToCart(part.partId)}
-                        disabled={part.stock.isOutOfStock}
-                        className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Ajouter au panier
-                      </button>
-                    )}
+                      ))}
+                      {part.compatibleVehicles.length > 2 && (
+                        <span className="text-primary-600">
+                          {' '}
+                          +{part.compatibleVehicles.length - 2} autres
+                        </span>
+                      )}
+                    </p>
                   </div>
                 )}
+
+                {/* Actions */}
+                <div className="space-y-2">
+                  {/* View Details Link */}
+                  <Link
+                    href={`/parts/${part.partId}`}
+                    className="w-full btn-secondary flex items-center justify-center space-x-2 text-sm"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>Voir détails</span>
+                  </Link>
+
+                  {/* Supplier Actions */}
+                  {user?.role === 'SUPPLIER' && part.supplier.id === user.id && (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => openEditModal(part)}
+                        className="flex-1 btn-secondary flex items-center justify-center space-x-1 text-sm"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span>Modifier</span>
+                      </button>
+                      <button
+                        onClick={() => openStockModal(part)}
+                        className="flex-1 btn-secondary flex items-center justify-center space-x-1 text-sm"
+                      >
+                        <PackagePlus className="h-4 w-4" />
+                        <span>Stock</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Garage Cart Actions */}
+                  {user?.role === 'GARAGE' && (
+                    <div className="flex items-center space-x-2">
+                      {cart.has(part.partId) ? (
+                        <>
+                          <button
+                            onClick={() => removeFromCart(part.partId)}
+                            className="btn-secondary px-3"
+                          >
+                            -
+                          </button>
+                          <span className="px-3 font-medium">{cart.get(part.partId)}</span>
+                          <button
+                            onClick={() => addToCart(part.partId)}
+                            className="btn-secondary px-3"
+                            disabled={part.stock.isOutOfStock}
+                          >
+                            +
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => addToCart(part.partId)}
+                          disabled={part.stock.isOutOfStock}
+                          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Ajouter au panier
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -324,21 +629,19 @@ export default function PartsPage() {
           {/* Pagination */}
           {pagination.totalPages > 1 && (
             <div className="flex justify-center mt-8 space-x-2">
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => fetchParts(page)}
-                    className={`px-4 py-2 rounded-lg ${
-                      page === pagination.page
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => fetchParts(page)}
+                  className={`px-4 py-2 rounded-lg ${
+                    page === pagination.page
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
             </div>
           )}
         </>
@@ -425,7 +728,9 @@ export default function PartsPage() {
                   >
                     <option value="">Sélectionner...</option>
                     {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -455,7 +760,9 @@ export default function PartsPage() {
                     min="0.01"
                     step="0.01"
                     value={newPart.price || ''}
-                    onChange={(e) => setNewPart({ ...newPart, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setNewPart({ ...newPart, price: parseFloat(e.target.value) || 0 })
+                    }
                     placeholder="12.99"
                     className="input"
                   />
@@ -469,7 +776,9 @@ export default function PartsPage() {
                     required
                     min="0"
                     value={newPart.initialStock || ''}
-                    onChange={(e) => setNewPart({ ...newPart, initialStock: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setNewPart({ ...newPart, initialStock: parseInt(e.target.value) || 0 })
+                    }
                     placeholder="50"
                     className="input"
                   />
@@ -500,14 +809,18 @@ export default function PartsPage() {
                   <input
                     type="number"
                     value={newVehicle.yearFrom}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, yearFrom: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      setNewVehicle({ ...newVehicle, yearFrom: parseInt(e.target.value) })
+                    }
                     placeholder="Année début"
                     className="input text-sm"
                   />
                   <input
                     type="number"
                     value={newVehicle.yearTo}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, yearTo: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      setNewVehicle({ ...newVehicle, yearTo: parseInt(e.target.value) })
+                    }
                     placeholder="Année fin"
                     className="input text-sm"
                   />
@@ -523,7 +836,10 @@ export default function PartsPage() {
                 {newPart.compatibleVehicles.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {newPart.compatibleVehicles.map((v, i) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                      >
                         <span className="text-sm">
                           {v.brand} {v.model} ({v.yearFrom}-{v.yearTo})
                         </span>
@@ -554,6 +870,189 @@ export default function PartsPage() {
                   className="btn-primary disabled:opacity-50"
                 >
                   {isCreating ? 'Création...' : 'Créer la pièce'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Part Modal */}
+      {showEditModal && editingPart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold">Modifier la pièce</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePart} className="p-6 space-y-4">
+              {updateError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                  {updateError}
+                </div>
+              )}
+
+              <div className="text-sm text-gray-500 mb-4">
+                Référence: <span className="font-mono">{editingPart.reference}</span>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                <input
+                  type="text"
+                  value={editData.name || ''}
+                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={editData.description || ''}
+                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                  rows={3}
+                  className="input"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Catégorie
+                  </label>
+                  <select
+                    value={editData.category || ''}
+                    onChange={(e) => setEditData({ ...editData, category: e.target.value })}
+                    className="input"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Marque
+                  </label>
+                  <input
+                    type="text"
+                    value={editData.brand || ''}
+                    onChange={(e) => setEditData({ ...editData, brand: e.target.value })}
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prix (EUR)
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={editData.price || ''}
+                  onChange={(e) =>
+                    setEditData({ ...editData, price: parseFloat(e.target.value) || 0 })
+                  }
+                  className="input"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="btn-secondary"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="btn-primary disabled:opacity-50"
+                >
+                  {isUpdating ? 'Mise à jour...' : 'Enregistrer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stock Modal */}
+      {showStockModal && stockPart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold">Ajouter du stock</h2>
+              <button
+                onClick={() => setShowStockModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddStock} className="p-6 space-y-4">
+              {stockError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                  {stockError}
+                </div>
+              )}
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="font-medium text-gray-900">{stockPart.name}</p>
+                <p className="text-sm text-gray-500">{stockPart.reference}</p>
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-600">Stock actuel: </span>
+                  <span className="font-medium">{stockPart.stock.quantity}</span>
+                  <span className="text-gray-400 ml-2">
+                    ({stockPart.stock.available} disponible)
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantité à ajouter *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={stockQuantity || ''}
+                  onChange={(e) => setStockQuantity(parseInt(e.target.value) || 0)}
+                  placeholder="10"
+                  className="input"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowStockModal(false)}
+                  className="btn-secondary"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAddingStock || stockQuantity <= 0}
+                  className="btn-primary disabled:opacity-50"
+                >
+                  {isAddingStock ? 'Ajout...' : 'Ajouter le stock'}
                 </button>
               </div>
             </form>

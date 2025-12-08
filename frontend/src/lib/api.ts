@@ -144,13 +144,34 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export interface UpdatePartDto {
+  name?: string;
+  description?: string;
+  category?: string;
+  brand?: string;
+  price?: number;
+}
+
+export interface PartDetail extends Part {
+  frequentlyOrderedWith?: Array<{
+    partId: string;
+    name: string;
+    reference: string;
+    count: number;
+  }>;
+}
+
 export const partsApi = {
   search: (params: PartsSearchParams) =>
     api.get<PaginatedResponse<Part>>("/queries/parts", { params }),
-  getById: (partId: string) => api.get<Part>(`/queries/parts/${partId}`),
+  getById: (partId: string) => api.get<PartDetail>(`/queries/parts/${partId}`),
+  getMyParts: (params?: { page?: number; limit?: number }) =>
+    api.get<PaginatedResponse<Part>>("/parts/my", { params }),
   create: (data: CreatePartDto) => api.post<Part>("/parts", data),
-  update: (partId: string, data: Partial<CreatePartDto>) =>
-    api.patch<Part>(`/parts/${partId}`, data),
+  update: (partId: string, data: UpdatePartDto) =>
+    api.put<Part>(`/parts/${partId}`, data),
+  addStock: (partId: string, quantity: number) =>
+    api.post<Part>(`/parts/${partId}/stock`, { quantity }),
 };
 
 // =============================================================================
@@ -203,4 +224,41 @@ export const ordersApi = {
   deliver: (orderId: string) => api.post(`/orders/${orderId}/deliver`),
   cancel: (orderId: string, reason: string) =>
     api.post(`/orders/${orderId}/cancel`, { reason }),
+};
+
+// =============================================================================
+// Analytics API (Admin)
+// =============================================================================
+
+export interface GraphStats {
+  totalUsers: number;
+  totalParts: number;
+  totalOrders: number;
+  totalVehicles: number;
+  usersByRole: Record<string, number>;
+}
+
+export interface TopSupplier {
+  supplierId: string;
+  supplierName: string;
+  orderCount: number;
+  totalAmount: number;
+}
+
+export interface VehiclePart {
+  partId: string;
+  name: string;
+  reference: string;
+  price: number;
+  supplierName: string;
+}
+
+export const analyticsApi = {
+  getGraphStats: () => api.get<GraphStats>("/queries/analytics/graph-stats"),
+  getMyTopSuppliers: () =>
+    api.get<TopSupplier[]>("/queries/analytics/my-top-suppliers"),
+  getPartsForVehicle: (brand: string, model: string, year: number) =>
+    api.get<VehiclePart[]>("/queries/analytics/parts-for-vehicle", {
+      params: { brand, model, year },
+    }),
 };
