@@ -18,6 +18,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Neo4jService } from '@infrastructure/neo4j';
+import { int } from 'neo4j-driver';
 
 @Injectable()
 export class Neo4jProjectionService {
@@ -337,7 +338,7 @@ export class Neo4jProjectionService {
       ORDER BY count DESC
       LIMIT $limit
       `,
-      { partId, limit },
+      { partId, limit: int(limit) },
     );
 
     return result.map((record: any) => ({
@@ -374,7 +375,7 @@ export class Neo4jProjectionService {
       ORDER BY r.totalSpentInCents DESC
       LIMIT $limit
       `,
-      { garageId, limit },
+      { garageId, limit: int(limit) },
     );
 
     return result.map((record: any) => ({

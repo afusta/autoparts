@@ -65,7 +65,7 @@ Plateforme B2B de commande de pièces automobiles entre garages et fournisseurs.
 ```
 WRITE SIDE (Commands)                    READ SIDE (Queries)
 ─────────────────────                    ───────────────────
-POST /parts                              GET /queries/parts
+POST /api/v1/parts                       GET /api/v1/queries/parts
      │                                        │
      ▼                                        ▼
 CreatePartCommand                        MongoDB Query
@@ -148,7 +148,7 @@ export class Order extends AggregateRoot<OrderProps> {
 
 | Write Side | Read Side |
 |------------|-----------|
-| `POST /parts` | `GET /queries/parts` |
+| `POST /api/v1/parts` | `GET /api/v1/queries/parts` |
 | CommandHandler | Direct MongoDB Query |
 | Aggregate + PostgreSQL | Denormalized Document |
 | Domain Events → RabbitMQ | Optimized for reads |
@@ -413,17 +413,17 @@ npm run dev
 
 ## API Endpoints
 
-### Authentification (`/auth`)
+### Authentification (`/api/v1/auth`)
 
 | Méthode | Endpoint | Description | Auth |
 |---------|----------|-------------|------|
-| POST | `/auth/register` | Inscription | Non |
-| POST | `/auth/login` | Connexion | Non |
-| GET | `/auth/me` | Profil utilisateur | Oui |
+| POST | `/api/v1/auth/register` | Inscription | Non |
+| POST | `/api/v1/auth/login` | Connexion | Non |
+| GET | `/api/v1/auth/me` | Profil utilisateur | Oui |
 
 **Inscription:**
 ```bash
-curl -X POST http://localhost:3000/auth/register \
+curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "garage@example.com",
@@ -446,18 +446,18 @@ curl -X POST http://localhost:3000/auth/register \
 }
 ```
 
-### Catalogue (`/parts`) - Fournisseurs
+### Catalogue (`/api/v1/parts`) - Fournisseurs
 
 | Méthode | Endpoint | Description | Rôle |
 |---------|----------|-------------|------|
-| POST | `/parts` | Créer une pièce | SUPPLIER |
-| PATCH | `/parts/:id` | Modifier une pièce | SUPPLIER |
-| POST | `/parts/:id/stock` | Ajouter du stock | SUPPLIER |
-| GET | `/parts/my` | Mes pièces | SUPPLIER |
+| POST | `/api/v1/parts` | Créer une pièce | SUPPLIER |
+| PATCH | `/api/v1/parts/:id` | Modifier une pièce | SUPPLIER |
+| POST | `/api/v1/parts/:id/stock` | Ajouter du stock | SUPPLIER |
+| GET | `/api/v1/parts/my` | Mes pièces | SUPPLIER |
 
 **Créer une pièce:**
 ```bash
-curl -X POST http://localhost:3000/parts \
+curl -X POST http://localhost:3000/api/v1/parts \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{
@@ -481,21 +481,21 @@ curl -X POST http://localhost:3000/parts \
   }'
 ```
 
-### Commandes (`/orders`)
+### Commandes (`/api/v1/orders`)
 
 | Méthode | Endpoint | Description | Rôle |
 |---------|----------|-------------|------|
-| POST | `/orders` | Créer une commande | GARAGE |
-| GET | `/orders/my` | Mes commandes | GARAGE |
-| GET | `/orders/supplier` | Commandes reçues | SUPPLIER |
-| GET | `/orders/:id` | Détail commande | All |
-| POST | `/orders/:id/confirm` | Confirmer | SUPPLIER |
-| POST | `/orders/:id/ship` | Expédier | SUPPLIER |
-| POST | `/orders/:id/cancel` | Annuler | All |
+| POST | `/api/v1/orders` | Créer une commande | GARAGE |
+| GET | `/api/v1/orders/my` | Mes commandes | GARAGE |
+| GET | `/api/v1/orders/supplier` | Commandes reçues | SUPPLIER |
+| GET | `/api/v1/orders/:id` | Détail commande | All |
+| POST | `/api/v1/orders/:id/confirm` | Confirmer | SUPPLIER |
+| POST | `/api/v1/orders/:id/ship` | Expédier | SUPPLIER |
+| POST | `/api/v1/orders/:id/cancel` | Annuler | All |
 
 **Créer une commande:**
 ```bash
-curl -X POST http://localhost:3000/orders \
+curl -X POST http://localhost:3000/api/v1/orders \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <garage-token>" \
   -d '{
@@ -507,21 +507,21 @@ curl -X POST http://localhost:3000/orders \
   }'
 ```
 
-### Requêtes Read Models (`/queries`)
+### Requêtes Read Models (`/api/v1/queries`)
 
 | Méthode | Endpoint | Description | Rôle |
 |---------|----------|-------------|------|
-| GET | `/queries/parts` | Recherche pièces (MongoDB) | All |
-| GET | `/queries/parts/:id` | Détail pièce + recommandations | All |
-| GET | `/queries/my-orders` | Mes commandes (MongoDB) | GARAGE |
-| GET | `/queries/supplier-orders` | Commandes reçues (MongoDB) | SUPPLIER |
-| GET | `/queries/analytics/my-top-suppliers` | Top fournisseurs (Neo4j) | GARAGE |
-| GET | `/queries/analytics/parts-for-vehicle` | Pièces compatibles (Neo4j) | All |
-| GET | `/queries/analytics/graph-stats` | Stats du graphe (Neo4j) | ADMIN |
+| GET | `/api/v1/queries/parts` | Recherche pièces (MongoDB) | All |
+| GET | `/api/v1/queries/parts/:id` | Détail pièce + recommandations | All |
+| GET | `/api/v1/queries/my-orders` | Mes commandes (MongoDB) | GARAGE |
+| GET | `/api/v1/queries/supplier-orders` | Commandes reçues (MongoDB) | SUPPLIER |
+| GET | `/api/v1/queries/analytics/my-top-suppliers` | Top fournisseurs (Neo4j) | GARAGE |
+| GET | `/api/v1/queries/analytics/parts-for-vehicle` | Pièces compatibles (Neo4j) | All |
+| GET | `/api/v1/queries/analytics/graph-stats` | Stats du graphe (Neo4j) | ADMIN |
 
 **Recherche de pièces:**
 ```bash
-curl "http://localhost:3000/queries/parts?search=frein&category=Freinage&inStock=true&page=1&limit=20" \
+curl "http://localhost:3000/api/v1/queries/parts?search=frein&category=Freinage&inStock=true&page=1&limit=20" \
   -H "Authorization: Bearer <token>"
 ```
 
@@ -760,7 +760,7 @@ ORDER BY r.totalSpentInCents DESC
 
 ```bash
 # 1. Créer un fournisseur
-curl -X POST http://localhost:3000/auth/register \
+curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"supplier@test.com","password":"password123","companyName":"Auto Parts Pro","role":"SUPPLIER"}'
 
@@ -768,7 +768,7 @@ curl -X POST http://localhost:3000/auth/register \
 SUPPLIER_TOKEN="<token>"
 
 # 2. Créer un garage
-curl -X POST http://localhost:3000/auth/register \
+curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"garage@test.com","password":"password123","companyName":"Garage Central","role":"GARAGE"}'
 
@@ -776,7 +776,7 @@ curl -X POST http://localhost:3000/auth/register \
 GARAGE_TOKEN="<token>"
 
 # 3. Fournisseur crée une pièce
-curl -X POST http://localhost:3000/parts \
+curl -X POST http://localhost:3000/api/v1/parts \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $SUPPLIER_TOKEN" \
   -d '{
@@ -795,11 +795,11 @@ curl -X POST http://localhost:3000/parts \
 PART_ID="<partId>"
 
 # 4. Garage recherche des pièces
-curl "http://localhost:3000/queries/parts?search=frein" \
+curl "http://localhost:3000/api/v1/queries/parts?search=frein" \
   -H "Authorization: Bearer $GARAGE_TOKEN"
 
 # 5. Garage crée une commande
-curl -X POST http://localhost:3000/orders \
+curl -X POST http://localhost:3000/api/v1/orders \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $GARAGE_TOKEN" \
   -d '{"lines": [{"partId": "'$PART_ID'", "quantity": 2}]}'
@@ -808,11 +808,11 @@ curl -X POST http://localhost:3000/orders \
 ORDER_ID="<orderId>"
 
 # 6. Fournisseur confirme la commande
-curl -X POST "http://localhost:3000/orders/$ORDER_ID/confirm" \
+curl -X POST "http://localhost:3000/api/v1/orders/$ORDER_ID/confirm" \
   -H "Authorization: Bearer $SUPPLIER_TOKEN"
 
 # 7. Fournisseur expédie
-curl -X POST "http://localhost:3000/orders/$ORDER_ID/ship" \
+curl -X POST "http://localhost:3000/api/v1/orders/$ORDER_ID/ship" \
   -H "Authorization: Bearer $SUPPLIER_TOKEN"
 
 # 8. Vérifier l'historique dans Neo4j
