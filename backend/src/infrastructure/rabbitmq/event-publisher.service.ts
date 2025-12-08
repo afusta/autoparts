@@ -33,7 +33,10 @@ export class EventPublisherService implements OnModuleInit {
       this.isConnected = true;
       this.logger.log('Connected to RabbitMQ');
     } catch (error) {
-      this.logger.warn('Failed to connect to RabbitMQ - events will not be published', error);
+      this.logger.warn(
+        'Failed to connect to RabbitMQ - events will not be published',
+        error,
+      );
     }
   }
 

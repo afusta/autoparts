@@ -16,7 +16,7 @@
 // =============================================================================
 
 import { AggregateRoot } from '@shared/ddd';
-import { OrderStatus, OrderStatusEnum, OrderLine } from '../value-objects';
+import { OrderStatus, OrderLine } from '../value-objects';
 import { OrderCreatedEvent, OrderStatusChangedEvent } from '../events';
 
 interface OrderProps {

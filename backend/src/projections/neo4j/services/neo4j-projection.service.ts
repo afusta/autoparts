@@ -127,7 +127,9 @@ export class Neo4jProjectionService {
 
     // Créer les nœuds Vehicle et relations COMPATIBLE_WITH
     for (const vehicle of data.compatibleVehicles) {
-      const vehicleId = `${vehicle.brand}-${vehicle.model}`.toLowerCase().replace(/\s+/g, '-');
+      const vehicleId = `${vehicle.brand}-${vehicle.model}`
+        .toLowerCase()
+        .replace(/\s+/g, '-');
 
       await this.neo4j.write(
         `
@@ -163,7 +165,9 @@ export class Neo4jProjectionService {
       );
     }
 
-    this.logger.log(`Part node created in Neo4j with ${data.compatibleVehicles.length} vehicle relations: ${data.partId}`);
+    this.logger.log(
+      `Part node created in Neo4j with ${data.compatibleVehicles.length} vehicle relations: ${data.partId}`,
+    );
   }
 
   async updatePartNode(
@@ -321,7 +325,10 @@ export class Neo4jProjectionService {
   /**
    * Trouve les pièces souvent commandées ensemble (pour recommandations)
    */
-  async findFrequentlyOrderedTogether(partId: string, limit = 5): Promise<Array<{ partId: string; count: number }>> {
+  async findFrequentlyOrderedTogether(
+    partId: string,
+    limit = 5,
+  ): Promise<Array<{ partId: string; count: number }>> {
     const result = await this.neo4j.read(
       `
       MATCH (p1:Part {id: $partId})<-[:CONTAINS]-(o:Order)-[:CONTAINS]->(p2:Part)
@@ -335,14 +342,20 @@ export class Neo4jProjectionService {
 
     return result.map((record: any) => ({
       partId: record.partId as string,
-      count: typeof record.count === 'number' ? record.count : record.count.toNumber(),
+      count:
+        typeof record.count === 'number'
+          ? record.count
+          : record.count.toNumber(),
     }));
   }
 
   /**
    * Trouve les top fournisseurs pour un garage
    */
-  async findTopSuppliersForGarage(garageId: string, limit = 10): Promise<
+  async findTopSuppliersForGarage(
+    garageId: string,
+    limit = 10,
+  ): Promise<
     Array<{
       supplierId: string;
       companyName: string;
@@ -367,8 +380,14 @@ export class Neo4jProjectionService {
     return result.map((record: any) => ({
       supplierId: record.supplierId as string,
       companyName: record.companyName as string,
-      orderCount: typeof record.orderCount === 'number' ? record.orderCount : record.orderCount.toNumber(),
-      totalSpent: (typeof record.totalSpent === 'number' ? record.totalSpent : record.totalSpent.toNumber()) / 100,
+      orderCount:
+        typeof record.orderCount === 'number'
+          ? record.orderCount
+          : record.orderCount.toNumber(),
+      totalSpent:
+        (typeof record.totalSpent === 'number'
+          ? record.totalSpent
+          : record.totalSpent.toNumber()) / 100,
     }));
   }
 
@@ -422,10 +441,22 @@ export class Neo4jProjectionService {
 
     const record = result[0] as any;
     return {
-      users: typeof record.users === 'number' ? record.users : record.users.toNumber(),
-      parts: typeof record.parts === 'number' ? record.parts : record.parts.toNumber(),
-      orders: typeof record.orders === 'number' ? record.orders : record.orders.toNumber(),
-      vehicles: typeof record.vehicles === 'number' ? record.vehicles : record.vehicles.toNumber(),
+      users:
+        typeof record.users === 'number'
+          ? record.users
+          : record.users.toNumber(),
+      parts:
+        typeof record.parts === 'number'
+          ? record.parts
+          : record.parts.toNumber(),
+      orders:
+        typeof record.orders === 'number'
+          ? record.orders
+          : record.orders.toNumber(),
+      vehicles:
+        typeof record.vehicles === 'number'
+          ? record.vehicles
+          : record.vehicles.toNumber(),
     };
   }
 }

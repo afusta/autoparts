@@ -23,7 +23,11 @@ import {
   PartReference,
   VehicleCompatibility,
 } from '../value-objects';
-import { PartCreatedEvent, PartUpdatedEvent, StockUpdatedEvent } from '../events';
+import {
+  PartCreatedEvent,
+  PartUpdatedEvent,
+  StockUpdatedEvent,
+} from '../events';
 
 interface PartProps {
   supplierId: string;
@@ -131,7 +135,13 @@ export class Part extends AggregateRoot<PartProps> {
     const price = Money.fromEuros(input.priceInEuros);
     const stock = Stock.create(input.initialStock);
     const compatibleVehicles = input.compatibleVehicles.map((v) =>
-      VehicleCompatibility.create(v.brand, v.model, v.yearFrom, v.yearTo, v.engine),
+      VehicleCompatibility.create(
+        v.brand,
+        v.model,
+        v.yearFrom,
+        v.yearTo,
+        v.engine,
+      ),
     );
 
     const part = new Part({

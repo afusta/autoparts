@@ -19,7 +19,10 @@ import { PART_REPOSITORY } from './domain/repositories/part.repository.interface
 
 // Application
 import { CreatePartHandler } from './application/handlers/create-part.handler';
-import { UpdatePartHandler, AddStockHandler } from './application/handlers/update-part.handler';
+import {
+  UpdatePartHandler,
+  AddStockHandler,
+} from './application/handlers/update-part.handler';
 
 // Infrastructure
 import { PartOrmEntity } from './infrastructure/persistence/part.orm-entity';

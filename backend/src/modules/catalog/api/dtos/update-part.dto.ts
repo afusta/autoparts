@@ -3,10 +3,19 @@
 // =============================================================================
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, MinLength, Min, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  MinLength,
+  Min,
+  IsOptional,
+} from 'class-validator';
 
 export class UpdatePartDto {
-  @ApiProperty({ required: false, example: "Filtre à huile BOSCH P7124 Premium" })
+  @ApiProperty({
+    required: false,
+    example: 'Filtre à huile BOSCH P7124 Premium',
+  })
   @IsString()
   @MinLength(2)
   @IsOptional()

@@ -53,9 +53,14 @@ export class OrderCreatedProjectionHandler implements IEventHandler<OrderCreated
         createdAt: event.occurredOn,
       });
 
-      this.logger.log(`Order projections created successfully: ${event.aggregateId}`);
+      this.logger.log(
+        `Order projections created successfully: ${event.aggregateId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to create order projections: ${event.aggregateId}`, error);
+      this.logger.error(
+        `Failed to create order projections: ${event.aggregateId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -64,7 +69,9 @@ export class OrderCreatedProjectionHandler implements IEventHandler<OrderCreated
 @Injectable()
 @EventsHandler(OrderStatusChangedEvent)
 export class OrderStatusChangedProjectionHandler implements IEventHandler<OrderStatusChangedEvent> {
-  private readonly logger = new Logger(OrderStatusChangedProjectionHandler.name);
+  private readonly logger = new Logger(
+    OrderStatusChangedProjectionHandler.name,
+  );
 
   constructor(
     private readonly mongoProjection: MongoProjectionService,
@@ -90,9 +97,14 @@ export class OrderStatusChangedProjectionHandler implements IEventHandler<OrderS
         event.payload.newStatus,
       );
 
-      this.logger.log(`Order status projections updated: ${event.aggregateId} → ${event.payload.newStatus}`);
+      this.logger.log(
+        `Order status projections updated: ${event.aggregateId} → ${event.payload.newStatus}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to update order status projections: ${event.aggregateId}`, error);
+      this.logger.error(
+        `Failed to update order status projections: ${event.aggregateId}`,
+        error,
+      );
       throw error;
     }
   }

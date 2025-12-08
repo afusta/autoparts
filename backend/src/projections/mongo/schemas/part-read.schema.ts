@@ -137,6 +137,13 @@ PartReadSchema.index({ 'supplier.id': 1 });
 
 // Index text pour la recherche full-text
 PartReadSchema.index(
-  { name: 'text', description: 'text', reference: 'text', vehiclesSearchText: 'text' },
-  { weights: { name: 10, reference: 5, description: 2, vehiclesSearchText: 3 } },
+  {
+    name: 'text',
+    description: 'text',
+    reference: 'text',
+    vehiclesSearchText: 'text',
+  },
+  {
+    weights: { name: 10, reference: 5, description: 2, vehiclesSearchText: 3 },
+  },
 );

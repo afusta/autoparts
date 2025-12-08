@@ -43,7 +43,9 @@ export class EventConsumerController {
     @Payload() data: DomainEventMessage,
     @Ctx() context: RmqContext,
   ) {
-    this.logger.log(`Received UserRegistered event: ${data.metadata.aggregateId}`);
+    this.logger.log(
+      `Received UserRegistered event: ${data.metadata.aggregateId}`,
+    );
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
@@ -139,7 +141,10 @@ export class EventConsumerController {
     try {
       const changes = data.payload.changes as Record<string, unknown>;
       await this.mongoProjection.updatePart(data.metadata.aggregateId, changes);
-      await this.neo4jProjection.updatePartNode(data.metadata.aggregateId, changes);
+      await this.neo4jProjection.updatePartNode(
+        data.metadata.aggregateId,
+        changes,
+      );
 
       channel.ack(originalMsg);
       this.logger.log(`Part projection updated: ${data.metadata.aggregateId}`);
@@ -154,7 +159,9 @@ export class EventConsumerController {
     @Payload() data: DomainEventMessage,
     @Ctx() context: RmqContext,
   ) {
-    this.logger.log(`Received StockUpdated event: ${data.metadata.aggregateId}`);
+    this.logger.log(
+      `Received StockUpdated event: ${data.metadata.aggregateId}`,
+    );
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
@@ -182,7 +189,9 @@ export class EventConsumerController {
     @Payload() data: DomainEventMessage,
     @Ctx() context: RmqContext,
   ) {
-    this.logger.log(`Received OrderCreated event: ${data.metadata.aggregateId}`);
+    this.logger.log(
+      `Received OrderCreated event: ${data.metadata.aggregateId}`,
+    );
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
@@ -208,12 +217,14 @@ export class EventConsumerController {
       await this.neo4jProjection.createOrderRelationships({
         orderId: data.metadata.aggregateId,
         garageId: data.payload.garageId as string,
-        lines: (data.payload.lines as Array<{
-          partId: string;
-          supplierId: string;
-          quantity: number;
-          unitPriceInCents: number;
-        }>).map(line => ({
+        lines: (
+          data.payload.lines as Array<{
+            partId: string;
+            supplierId: string;
+            quantity: number;
+            unitPriceInCents: number;
+          }>
+        ).map((line) => ({
           partId: line.partId,
           supplierId: line.supplierId,
           quantity: line.quantity,
@@ -236,7 +247,9 @@ export class EventConsumerController {
     @Payload() data: DomainEventMessage,
     @Ctx() context: RmqContext,
   ) {
-    this.logger.log(`Received OrderStatusChanged event: ${data.metadata.aggregateId}`);
+    this.logger.log(
+      `Received OrderStatusChanged event: ${data.metadata.aggregateId}`,
+    );
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
@@ -255,7 +268,9 @@ export class EventConsumerController {
       );
 
       channel.ack(originalMsg);
-      this.logger.log(`Order status projection updated: ${data.metadata.aggregateId}`);
+      this.logger.log(
+        `Order status projection updated: ${data.metadata.aggregateId}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to process OrderStatusChanged: ${error}`);
       channel.nack(originalMsg, false, false);

@@ -84,7 +84,9 @@ export class Stock extends ValueObject<StockProps> {
    */
   release(quantity: number): Stock {
     if (quantity > this.reserved) {
-      throw new Error(`Cannot release ${quantity} items. Only ${this.reserved} reserved.`);
+      throw new Error(
+        `Cannot release ${quantity} items. Only ${this.reserved} reserved.`,
+      );
     }
 
     return Stock.create(this.quantity, this.reserved - quantity);
@@ -96,7 +98,9 @@ export class Stock extends ValueObject<StockProps> {
    */
   confirm(quantity: number): Stock {
     if (quantity > this.reserved) {
-      throw new Error(`Cannot confirm ${quantity} items. Only ${this.reserved} reserved.`);
+      throw new Error(
+        `Cannot confirm ${quantity} items. Only ${this.reserved} reserved.`,
+      );
     }
 
     return Stock.create(this.quantity - quantity, this.reserved - quantity);

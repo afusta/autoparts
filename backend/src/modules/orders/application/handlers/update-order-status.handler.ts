@@ -30,9 +30,7 @@ import { EventPublisherService } from '@infrastructure/rabbitmq';
 // ConfirmOrder Handler
 // =============================================================================
 @CommandHandler(ConfirmOrderCommand)
-export class ConfirmOrderHandler
-  implements ICommandHandler<ConfirmOrderCommand>
-{
+export class ConfirmOrderHandler implements ICommandHandler<ConfirmOrderCommand> {
   private readonly logger = new Logger(ConfirmOrderHandler.name);
 
   constructor(
@@ -60,7 +58,9 @@ export class ConfirmOrderHandler
     await this.orderRepository.save(order);
     await this.eventPublisher.publishAggregateEvents(order);
 
-    this.logger.log(`Order ${order.id} confirmed by supplier ${command.supplierId}`);
+    this.logger.log(
+      `Order ${order.id} confirmed by supplier ${command.supplierId}`,
+    );
 
     return order;
   }
@@ -111,7 +111,9 @@ export class ShipOrderHandler implements ICommandHandler<ShipOrderCommand> {
     await this.orderRepository.save(order);
     await this.eventPublisher.publishAggregateEvents(order);
 
-    this.logger.log(`Order ${order.id} shipped by supplier ${command.supplierId}`);
+    this.logger.log(
+      `Order ${order.id} shipped by supplier ${command.supplierId}`,
+    );
 
     return order;
   }
@@ -121,9 +123,7 @@ export class ShipOrderHandler implements ICommandHandler<ShipOrderCommand> {
 // DeliverOrder Handler
 // =============================================================================
 @CommandHandler(DeliverOrderCommand)
-export class DeliverOrderHandler
-  implements ICommandHandler<DeliverOrderCommand>
-{
+export class DeliverOrderHandler implements ICommandHandler<DeliverOrderCommand> {
   private readonly logger = new Logger(DeliverOrderHandler.name);
 
   constructor(

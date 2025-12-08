@@ -12,11 +12,7 @@
 // =============================================================================
 
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import {
-  Inject,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Inject, BadRequestException, Logger } from '@nestjs/common';
 import { CreateOrderCommand } from '../commands/create-order.command';
 import { Order } from '../../domain/entities/order.entity';
 import {
@@ -64,9 +60,7 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
       }
 
       if (!part.isActive) {
-        throw new BadRequestException(
-          `Part ${part.name} is not available`,
-        );
+        throw new BadRequestException(`Part ${part.name} is not available`);
       }
 
       if (!part.stock.canReserve(line.quantity)) {
@@ -109,7 +103,9 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
     // 5. Publier les events de la commande
     await this.eventPublisher.publishAggregateEvents(order);
 
-    this.logger.log(`Order created: ${order.id} with ${orderLines.length} lines`);
+    this.logger.log(
+      `Order created: ${order.id} with ${orderLines.length} lines`,
+    );
 
     return order;
   }

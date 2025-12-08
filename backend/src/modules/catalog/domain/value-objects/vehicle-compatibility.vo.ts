@@ -70,7 +70,9 @@ export class VehicleCompatibility extends ValueObject<VehicleCompatibilityProps>
     }
 
     if (yearTo < yearFrom || yearTo > currentYear + 2) {
-      throw new Error(`Invalid yearTo: ${yearTo}. Must be >= yearFrom and <= ${currentYear + 2}`);
+      throw new Error(
+        `Invalid yearTo: ${yearTo}. Must be >= yearFrom and <= ${currentYear + 2}`,
+      );
     }
 
     return new VehicleCompatibility({

@@ -3,8 +3,16 @@
 // =============================================================================
 
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Inject, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
-import { UpdatePartCommand, AddStockCommand } from '../commands/update-part.command';
+import {
+  Inject,
+  NotFoundException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
+import {
+  UpdatePartCommand,
+  AddStockCommand,
+} from '../commands/update-part.command';
 import { Part } from '../../domain/entities/part.entity';
 import {
   IPartRepository,
@@ -69,7 +77,9 @@ export class AddStockHandler implements ICommandHandler<AddStockCommand> {
   ) {}
 
   async execute(command: AddStockCommand): Promise<Part> {
-    this.logger.log(`Adding ${command.quantity} to stock of part: ${command.partId}`);
+    this.logger.log(
+      `Adding ${command.quantity} to stock of part: ${command.partId}`,
+    );
 
     // Charger la pièce
     const part = await this.partRepository.findById(command.partId);
@@ -80,7 +90,9 @@ export class AddStockHandler implements ICommandHandler<AddStockCommand> {
 
     // Vérifier que le fournisseur est le propriétaire
     if (part.supplierId !== command.supplierId) {
-      throw new ForbiddenException('You can only update stock for your own parts');
+      throw new ForbiddenException(
+        'You can only update stock for your own parts',
+      );
     }
 
     // Ajouter du stock

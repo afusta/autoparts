@@ -69,7 +69,9 @@ export class MongoProjectionService {
     }>;
   }): Promise<void> {
     // Récupérer les infos du supplier
-    const supplier = await this.userModel.findOne({ userId: data.supplierId }).exec();
+    const supplier = await this.userModel
+      .findOne({ userId: data.supplierId })
+      .exec();
 
     const price = data.priceInCents / 100;
     const priceFormatted = new Intl.NumberFormat('fr-FR', {
@@ -106,7 +108,8 @@ export class MongoProjectionService {
       },
       compatibleVehicles: data.compatibleVehicles.map((v) => ({
         ...v,
-        searchText: `${v.brand} ${v.model} ${v.yearFrom}-${v.yearTo} ${v.engine || ''}`.trim(),
+        searchText:
+          `${v.brand} ${v.model} ${v.yearFrom}-${v.yearTo} ${v.engine || ''}`.trim(),
       })),
       vehiclesSearchText,
       isActive: true,
@@ -289,6 +292,8 @@ export class MongoProjectionService {
         },
       },
     );
-    this.logger.log(`Order status projection updated: ${data.orderId} → ${data.newStatus}`);
+    this.logger.log(
+      `Order status projection updated: ${data.orderId} → ${data.newStatus}`,
+    );
   }
 }

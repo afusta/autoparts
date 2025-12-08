@@ -55,9 +55,14 @@ export class PartCreatedProjectionHandler implements IEventHandler<PartCreatedEv
         compatibleVehicles: event.payload.compatibleVehicles,
       });
 
-      this.logger.log(`Part projections created successfully: ${event.aggregateId}`);
+      this.logger.log(
+        `Part projections created successfully: ${event.aggregateId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to create part projections: ${event.aggregateId}`, error);
+      this.logger.error(
+        `Failed to create part projections: ${event.aggregateId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -85,9 +90,14 @@ export class PartUpdatedProjectionHandler implements IEventHandler<PartUpdatedEv
       // Mettre à jour Neo4j
       await this.neo4jProjection.updatePartNode(event.aggregateId, changes);
 
-      this.logger.log(`Part projections updated successfully: ${event.aggregateId}`);
+      this.logger.log(
+        `Part projections updated successfully: ${event.aggregateId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to update part projections: ${event.aggregateId}`, error);
+      this.logger.error(
+        `Failed to update part projections: ${event.aggregateId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -110,9 +120,14 @@ export class StockUpdatedProjectionHandler implements IEventHandler<StockUpdated
         event.payload.newReserved,
       );
 
-      this.logger.log(`Stock projection updated successfully: ${event.aggregateId}`);
+      this.logger.log(
+        `Stock projection updated successfully: ${event.aggregateId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to update stock projection: ${event.aggregateId}`, error);
+      this.logger.error(
+        `Failed to update stock projection: ${event.aggregateId}`,
+        error,
+      );
       throw error;
     }
   }

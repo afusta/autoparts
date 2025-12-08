@@ -40,9 +40,14 @@ export class UserProjectionHandler implements IEventHandler<UserRegisteredEvent>
         role: event.payload.role,
       });
 
-      this.logger.log(`User projections updated successfully: ${event.aggregateId}`);
+      this.logger.log(
+        `User projections updated successfully: ${event.aggregateId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to update user projections: ${event.aggregateId}`, error);
+      this.logger.error(
+        `Failed to update user projections: ${event.aggregateId}`,
+        error,
+      );
       throw error;
     }
   }

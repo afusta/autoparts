@@ -50,7 +50,7 @@ export class CreatePartDto {
 
   @ApiProperty({
     description: 'Nom de la pièce',
-    example: "Filtre à huile BOSCH P7124",
+    example: 'Filtre à huile BOSCH P7124',
   })
   @IsString()
   @MinLength(2)

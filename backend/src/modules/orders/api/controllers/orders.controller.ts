@@ -165,7 +165,9 @@ export class OrdersController {
   @Get('stats')
   @ApiOperation({ summary: 'Get order statistics' })
   @ApiResponse({ status: 200, type: OrderStatsDto })
-  async getStats(@CurrentUser() user: AuthenticatedUser): Promise<OrderStatsDto> {
+  async getStats(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<OrderStatsDto> {
     let counts;
 
     if (user.role === UserRoleEnum.GARAGE) {

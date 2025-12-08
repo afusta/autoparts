@@ -3,7 +3,14 @@
 // =============================================================================
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsOptional, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  Min,
+  Max,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class SearchPartsDto {

@@ -23,7 +23,9 @@ export class CreatePartHandler implements ICommandHandler<CreatePartCommand> {
   ) {}
 
   async execute(command: CreatePartCommand): Promise<Part> {
-    this.logger.log(`Creating part: ${command.reference} for supplier ${command.supplierId}`);
+    this.logger.log(
+      `Creating part: ${command.reference} for supplier ${command.supplierId}`,
+    );
 
     // Vérifier que la référence n'existe pas déjà pour ce fournisseur
     const exists = await this.partRepository.referenceExists(

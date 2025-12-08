@@ -4,7 +4,13 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import {
+  Repository,
+  ILike,
+  Between,
+  MoreThanOrEqual,
+  LessThanOrEqual,
+} from 'typeorm';
 import { PaginatedResult, PaginationOptions } from '@shared/ddd';
 import { Part } from '../../domain/entities/part.entity';
 import {
@@ -47,14 +53,20 @@ export class PartRepository implements IPartRepository {
     };
   }
 
-  async findByReference(supplierId: string, reference: string): Promise<Part | null> {
+  async findByReference(
+    supplierId: string,
+    reference: string,
+  ): Promise<Part | null> {
     const entity = await this.ormRepository.findOne({
       where: { supplierId, reference: reference.toUpperCase() },
     });
     return entity ? this.toDomain(entity) : null;
   }
 
-  async referenceExists(supplierId: string, reference: string): Promise<boolean> {
+  async referenceExists(
+    supplierId: string,
+    reference: string,
+  ): Promise<boolean> {
     const count = await this.ormRepository.count({
       where: { supplierId, reference: reference.toUpperCase() },
     });
@@ -114,7 +126,11 @@ export class PartRepository implements IPartRepository {
     }
 
     // Filtrer par compatibilité véhicule (recherche dans JSONB)
-    if (criteria.vehicleBrand || criteria.vehicleModel || criteria.vehicleYear) {
+    if (
+      criteria.vehicleBrand ||
+      criteria.vehicleModel ||
+      criteria.vehicleYear
+    ) {
       // Recherche dans le tableau JSON
       qb.andWhere(
         `EXISTS (
@@ -128,8 +144,12 @@ export class PartRepository implements IPartRepository {
             ))
         )`,
         {
-          vehicleBrand: criteria.vehicleBrand ? `%${criteria.vehicleBrand}%` : null,
-          vehicleModel: criteria.vehicleModel ? `%${criteria.vehicleModel}%` : null,
+          vehicleBrand: criteria.vehicleBrand
+            ? `%${criteria.vehicleBrand}%`
+            : null,
+          vehicleModel: criteria.vehicleModel
+            ? `%${criteria.vehicleModel}%`
+            : null,
           vehicleYear: criteria.vehicleYear ?? null,
         },
       );
