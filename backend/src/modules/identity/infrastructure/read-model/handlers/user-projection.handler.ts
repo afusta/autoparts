@@ -12,9 +12,7 @@ import { Neo4jService } from '@infrastructure/neo4j';
 
 @Injectable()
 @EventsHandler(UserRegisteredEvent)
-export class UserProjectionHandler
-  implements IEventHandler<UserRegisteredEvent>
-{
+export class UserProjectionHandler implements IEventHandler<UserRegisteredEvent> {
   private readonly logger = new Logger(UserProjectionHandler.name);
 
   constructor(

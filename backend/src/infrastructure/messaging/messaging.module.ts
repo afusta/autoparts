@@ -17,11 +17,7 @@ import { EventConsumerController } from './event-consumer.controller';
 import { AnalyticsController } from '../api/analytics.controller';
 
 @Module({
-  imports: [
-    IdentityModule,
-    CatalogModule,
-    OrdersModule,
-  ],
+  imports: [IdentityModule, CatalogModule, OrdersModule],
   controllers: [EventConsumerController, AnalyticsController],
 })
 export class MessagingModule {}

@@ -34,9 +34,7 @@ export interface CreatePartProjectionData {
 export class PartReadService {
   private readonly logger = new Logger(PartReadService.name);
 
-  constructor(
-    @InjectModel(PartRead.name) private partModel: Model<PartRead>,
-  ) {}
+  constructor(@InjectModel(PartRead.name) private partModel: Model<PartRead>) {}
 
   async createPart(data: CreatePartProjectionData): Promise<void> {
     const price = data.priceInCents / 100;

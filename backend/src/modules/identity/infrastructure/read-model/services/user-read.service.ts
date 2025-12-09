@@ -13,9 +13,7 @@ import { UserRead } from '../schemas/user-read.schema';
 export class UserReadService {
   private readonly logger = new Logger(UserReadService.name);
 
-  constructor(
-    @InjectModel(UserRead.name) private userModel: Model<UserRead>,
-  ) {}
+  constructor(@InjectModel(UserRead.name) private userModel: Model<UserRead>) {}
 
   async createUser(data: {
     userId: string;
@@ -45,9 +43,6 @@ export class UserReadService {
   }
 
   async incrementTotalParts(userId: string): Promise<void> {
-    await this.userModel.updateOne(
-      { userId },
-      { $inc: { totalParts: 1 } },
-    );
+    await this.userModel.updateOne({ userId }, { $inc: { totalParts: 1 } });
   }
 }

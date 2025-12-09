@@ -63,7 +63,9 @@ const EventHandlers = [
 @Module({
   imports: [
     TypeOrmModule.forFeature([PartOrmEntity]),
-    MongooseModule.forFeature([{ name: PartRead.name, schema: PartReadSchema }]),
+    MongooseModule.forFeature([
+      { name: PartRead.name, schema: PartReadSchema },
+    ]),
     CqrsModule,
     IdentityModule,
   ],

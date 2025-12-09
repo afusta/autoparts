@@ -1133,13 +1133,23 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
         await neo4jService.write(
           `MERGE (g:User:Garage {id: $id})
            SET g.companyName = $companyName, g.email = $email, g.role = $role`,
-          { id: user.id, companyName: user.companyName, email: user.email, role: user.role },
+          {
+            id: user.id,
+            companyName: user.companyName,
+            email: user.email,
+            role: user.role,
+          },
         );
       } else if (user.role === 'SUPPLIER') {
         await neo4jService.write(
           `MERGE (s:User:Supplier {id: $id})
            SET s.companyName = $companyName, s.email = $email, s.role = $role`,
-          { id: user.id, companyName: user.companyName, email: user.email, role: user.role },
+          {
+            id: user.id,
+            companyName: user.companyName,
+            email: user.email,
+            role: user.role,
+          },
         );
       }
     }
@@ -1214,14 +1224,20 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
     console.log('  ✓ Created ORDERED relationships');
 
     // Create ORDERED_FROM relationships (Garage -> Supplier) for analytics
-    const garageSupplierTotals = new Map<string, { orderCount: number; totalSpentInCents: number }>();
+    const garageSupplierTotals = new Map<
+      string,
+      { orderCount: number; totalSpentInCents: number }
+    >();
 
     for (const order of orders) {
       if (order.status === 'CANCELLED') continue;
 
       for (const line of order.lines || []) {
         const key = `${order.garageId}|${line.supplierId}`;
-        const existing = garageSupplierTotals.get(key) || { orderCount: 0, totalSpentInCents: 0 };
+        const existing = garageSupplierTotals.get(key) || {
+          orderCount: 0,
+          totalSpentInCents: 0,
+        };
         existing.orderCount += 1;
         existing.totalSpentInCents += line.unitPriceInCents * line.quantity;
         garageSupplierTotals.set(key, existing);

@@ -56,7 +56,9 @@ const EventHandlers = [UserProjectionHandler];
     TypeOrmModule.forFeature([UserOrmEntity]),
 
     // Mongoose pour le Read Model
-    MongooseModule.forFeature([{ name: UserRead.name, schema: UserReadSchema }]),
+    MongooseModule.forFeature([
+      { name: UserRead.name, schema: UserReadSchema },
+    ]),
 
     // CQRS pour CommandBus
     CqrsModule,

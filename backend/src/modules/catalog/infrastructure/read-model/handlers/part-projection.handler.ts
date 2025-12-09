@@ -16,9 +16,7 @@ import { Neo4jService } from '@infrastructure/neo4j';
 
 @Injectable()
 @EventsHandler(PartCreatedEvent)
-export class PartCreatedProjectionHandler
-  implements IEventHandler<PartCreatedEvent>
-{
+export class PartCreatedProjectionHandler implements IEventHandler<PartCreatedEvent> {
   private readonly logger = new Logger(PartCreatedProjectionHandler.name);
 
   constructor(
@@ -166,9 +164,7 @@ export class PartCreatedProjectionHandler
 
 @Injectable()
 @EventsHandler(PartUpdatedEvent)
-export class PartUpdatedProjectionHandler
-  implements IEventHandler<PartUpdatedEvent>
-{
+export class PartUpdatedProjectionHandler implements IEventHandler<PartUpdatedEvent> {
   private readonly logger = new Logger(PartUpdatedProjectionHandler.name);
 
   constructor(
@@ -248,9 +244,7 @@ export class PartUpdatedProjectionHandler
 
 @Injectable()
 @EventsHandler(StockUpdatedEvent)
-export class StockUpdatedProjectionHandler
-  implements IEventHandler<StockUpdatedEvent>
-{
+export class StockUpdatedProjectionHandler implements IEventHandler<StockUpdatedEvent> {
   private readonly logger = new Logger(StockUpdatedProjectionHandler.name);
 
   constructor(private readonly partReadService: PartReadService) {}

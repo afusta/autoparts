@@ -4,13 +4,7 @@
 // API de lecture optimisées pour les commandes (MongoDB Read Model)
 // =============================================================================
 
-import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-  Logger,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Logger } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,

@@ -15,9 +15,7 @@ import { Neo4jService } from '@infrastructure/neo4j';
 
 @Injectable()
 @EventsHandler(OrderCreatedEvent)
-export class OrderCreatedProjectionHandler
-  implements IEventHandler<OrderCreatedEvent>
-{
+export class OrderCreatedProjectionHandler implements IEventHandler<OrderCreatedEvent> {
   private readonly logger = new Logger(OrderCreatedProjectionHandler.name);
 
   constructor(
@@ -158,9 +156,7 @@ export class OrderCreatedProjectionHandler
 
 @Injectable()
 @EventsHandler(OrderStatusChangedEvent)
-export class OrderStatusChangedProjectionHandler
-  implements IEventHandler<OrderStatusChangedEvent>
-{
+export class OrderStatusChangedProjectionHandler implements IEventHandler<OrderStatusChangedEvent> {
   private readonly logger = new Logger(
     OrderStatusChangedProjectionHandler.name,
   );

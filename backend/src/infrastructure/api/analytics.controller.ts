@@ -62,7 +62,10 @@ export class AnalyticsController {
 
   private toNumber(value: unknown): number {
     if (typeof value === 'number') return value;
-    if (value && typeof (value as { toNumber?: () => number }).toNumber === 'function') {
+    if (
+      value &&
+      typeof (value as { toNumber?: () => number }).toNumber === 'function'
+    ) {
       return (value as { toNumber: () => number }).toNumber();
     }
     return 0;
