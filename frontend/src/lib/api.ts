@@ -111,6 +111,9 @@ export interface PartsSearchParams {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  vehicleYear?: number;
   page?: number;
   limit?: number;
 }
@@ -240,9 +243,9 @@ export interface GraphStats {
 
 export interface TopSupplier {
   supplierId: string;
-  supplierName: string;
+  companyName: string;
   orderCount: number;
-  totalAmount: number;
+  totalSpent: number;
 }
 
 export interface VehiclePart {

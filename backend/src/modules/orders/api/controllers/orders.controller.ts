@@ -41,6 +41,7 @@ import {
   CreateOrderCommand,
   ConfirmOrderCommand,
   ShipOrderCommand,
+  DeliverOrderCommand,
   CancelOrderCommand,
 } from '../../application/commands';
 import { CreateOrderDto, CancelOrderDto, OrderResponseDto } from '../dtos';
@@ -124,6 +125,29 @@ export class OrdersController {
   ): Promise<OrderResponseDto> {
     const command = new ShipOrderCommand(id, user.id);
     const order = await this.commandBus.execute<ShipOrderCommand, Order>(
+      command,
+    );
+    return this.toResponse(order);
+  }
+
+  // ===========================================================================
+  // POST /orders/:id/deliver - Livrer (Garage confirme réception)
+  // ===========================================================================
+  @Post(':id/deliver')
+  @UseGuards(RolesGuard)
+  @Roles(UserRoleEnum.GARAGE, UserRoleEnum.ADMIN)
+  @ApiOperation({
+    summary: 'Mark order as delivered',
+    description: 'Garage confirms reception',
+  })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, type: OrderResponseDto })
+  async deliverOrder(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<OrderResponseDto> {
+    const command = new DeliverOrderCommand(id, user.id);
+    const order = await this.commandBus.execute<DeliverOrderCommand, Order>(
       command,
     );
     return this.toResponse(order);

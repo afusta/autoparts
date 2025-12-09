@@ -47,6 +47,7 @@ export default function PartsPage() {
   const [vehicleBrand, setVehicleBrand] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleYear, setVehicleYear] = useState('');
+  const [myPartsOnly, setMyPartsOnly] = useState(false);
 
   // Create Part Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -95,16 +96,26 @@ export default function PartsPage() {
   const fetchParts = async (page = 1) => {
     setIsLoading(true);
     try {
-      const response = await partsApi.search({
-        search: search || undefined,
-        category: category || undefined,
-        brand: brand || undefined,
-        minPrice: minPrice ? parseFloat(minPrice) : undefined,
-        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-        inStock: inStockOnly || undefined,
-        page,
-        limit: 12,
-      });
+      let response;
+
+      // If supplier wants to see only their parts, use getMyParts endpoint
+      if (myPartsOnly && user?.role === 'SUPPLIER') {
+        response = await partsApi.getMyParts({ page, limit: 12 });
+      } else {
+        response = await partsApi.search({
+          search: search || undefined,
+          category: category || undefined,
+          brand: brand || undefined,
+          minPrice: minPrice ? parseFloat(minPrice) : undefined,
+          maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+          inStock: inStockOnly || undefined,
+          vehicleBrand: vehicleBrand || undefined,
+          vehicleModel: vehicleModel || undefined,
+          vehicleYear: vehicleYear ? parseInt(vehicleYear) : undefined,
+          page,
+          limit: 12,
+        });
+      }
       setParts(response.data.items);
       setPagination(response.data.pagination);
     } catch (error) {
@@ -116,7 +127,7 @@ export default function PartsPage() {
 
   useEffect(() => {
     fetchParts();
-  }, [category, inStockOnly]);
+  }, [category, inStockOnly, myPartsOnly]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +148,7 @@ export default function PartsPage() {
     setVehicleBrand('');
     setVehicleModel('');
     setVehicleYear('');
+    setMyPartsOnly(false);
     fetchParts(1);
   };
 
@@ -355,6 +367,7 @@ export default function PartsPage() {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="input w-auto"
+              disabled={myPartsOnly}
             >
               <option value="">Toutes catégories</option>
               {categories.map((cat) => (
@@ -364,6 +377,20 @@ export default function PartsPage() {
               ))}
             </select>
           </div>
+
+          {user?.role === 'SUPPLIER' && (
+            <label className="flex items-center space-x-2 cursor-pointer bg-primary-50 px-4 py-2 rounded-lg">
+              <input
+                type="checkbox"
+                checked={myPartsOnly}
+                onChange={(e) => setMyPartsOnly(e.target.checked)}
+                className="h-4 w-4 text-primary-600 rounded border-gray-300"
+              />
+              <span className="text-sm font-medium text-primary-700">
+                Mes pièces uniquement
+              </span>
+            </label>
+          )}
 
           <button
             type="button"

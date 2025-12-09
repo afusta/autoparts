@@ -257,7 +257,7 @@ export default function OrdersPage() {
                 </div>
               </div>
 
-              {/* Actions */}
+              {/* Supplier Actions */}
               {isSupplier && (
                 <div className="flex flex-wrap gap-3">
                   {selectedOrder.status === 'PENDING' && (
@@ -284,24 +284,29 @@ export default function OrdersPage() {
                       Marquer comme expédiée
                     </button>
                   )}
+                </div>
+              )}
+
+              {/* Garage Actions */}
+              {isGarage && (
+                <div className="flex flex-wrap gap-3">
+                  {selectedOrder.status === 'PENDING' && (
+                    <button
+                      onClick={() => handleAction(selectedOrder.orderId, 'cancel')}
+                      className="btn-danger"
+                    >
+                      Annuler la commande
+                    </button>
+                  )}
                   {selectedOrder.status === 'SHIPPED' && (
                     <button
                       onClick={() => handleAction(selectedOrder.orderId, 'deliver')}
                       className="btn-primary"
                     >
-                      Marquer comme livrée
+                      Confirmer la réception
                     </button>
                   )}
                 </div>
-              )}
-
-              {isGarage && selectedOrder.status === 'PENDING' && (
-                <button
-                  onClick={() => handleAction(selectedOrder.orderId, 'cancel')}
-                  className="btn-danger"
-                >
-                  Annuler la commande
-                </button>
               )}
             </div>
           </div>

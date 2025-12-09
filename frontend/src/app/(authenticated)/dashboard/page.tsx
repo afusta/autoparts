@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Package, ShoppingCart, TrendingUp, Users } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
-import { ordersApi, Order } from "@/lib/api";
+import { ordersApi, analyticsApi, Order, TopSupplier } from "@/lib/api";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [topSuppliers, setTopSuppliers] = useState<TopSupplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSuppliersLoading, setIsSuppliersLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -28,6 +30,27 @@ export default function DashboardPage() {
 
     if (user) {
       fetchOrders();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchTopSuppliers = async () => {
+      if (user?.role !== "GARAGE") {
+        setIsSuppliersLoading(false);
+        return;
+      }
+      try {
+        const response = await analyticsApi.getMyTopSuppliers();
+        setTopSuppliers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch top suppliers:", error);
+      } finally {
+        setIsSuppliersLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchTopSuppliers();
     }
   }, [user]);
 
@@ -162,6 +185,74 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Top Suppliers - Only for GARAGE users */}
+      {user?.role === "GARAGE" && (
+        <div className="card">
+          <div className="flex items-center mb-4">
+            <TrendingUp className="h-5 w-5 text-primary-600 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Mes meilleurs fournisseurs
+            </h2>
+          </div>
+          {isSuppliersLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          ) : topSuppliers.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fournisseur
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Commandes
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total dépensé
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {topSuppliers.map((supplier, index) => (
+                    <tr key={supplier.supplierId} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary-600">
+                              {index + 1}
+                            </span>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-900">
+                              {supplier.companyName}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm text-gray-900">
+                        {supplier.orderCount}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                        {supplier.totalSpent.toLocaleString("fr-FR", {
+                          style: "currency",
+                          currency: "EUR",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">
+              Aucune donnée de fournisseur disponible
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

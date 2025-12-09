@@ -23,7 +23,8 @@ export class AnalyticsController {
   @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Statistiques du graphe (Admin)' })
   async getGraphStats() {
-    const result = await this.neo4j.read(`
+    // Get total counts
+    const countsResult = await this.neo4j.read(`
       MATCH (u:User) WITH count(u) as users
       MATCH (p:Part) WITH users, count(p) as parts
       MATCH (o:Order) WITH users, parts, count(o) as orders
@@ -31,16 +32,31 @@ export class AnalyticsController {
       RETURN users, parts, orders, vehicles
     `);
 
-    if (result.length === 0) {
-      return { users: 0, parts: 0, orders: 0, vehicles: 0 };
+    // Get users by role
+    const roleResult = await this.neo4j.read(`
+      MATCH (u:User)
+      RETURN u.role as role, count(u) as count
+    `);
+
+    const counts =
+      countsResult.length > 0
+        ? (countsResult[0] as Record<string, unknown>)
+        : { users: 0, parts: 0, orders: 0, vehicles: 0 };
+
+    const usersByRole: Record<string, number> = {};
+    for (const record of roleResult as Array<Record<string, unknown>>) {
+      const role = record.role as string;
+      if (role) {
+        usersByRole[role] = this.toNumber(record.count);
+      }
     }
 
-    const record = result[0] as Record<string, unknown>;
     return {
-      users: this.toNumber(record.users),
-      parts: this.toNumber(record.parts),
-      orders: this.toNumber(record.orders),
-      vehicles: this.toNumber(record.vehicles),
+      totalUsers: this.toNumber(counts.users),
+      totalParts: this.toNumber(counts.parts),
+      totalOrders: this.toNumber(counts.orders),
+      totalVehicles: this.toNumber(counts.vehicles),
+      usersByRole,
     };
   }
 

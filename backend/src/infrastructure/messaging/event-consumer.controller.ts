@@ -512,8 +512,8 @@ export class EventConsumerController {
 
     await this.neo4j.write(
       `
-      MATCH (g:User {id: $garageId})
-      MATCH (o:Order {id: $orderId})
+      MERGE (g:User:Garage {id: $garageId})
+      MERGE (o:Order {id: $orderId})
       MERGE (g)-[r:PLACED]->(o)
       ON CREATE SET r.createdAt = datetime()
       `,
@@ -526,8 +526,8 @@ export class EventConsumerController {
     for (const line of data.lines) {
       await this.neo4j.write(
         `
-        MATCH (o:Order {id: $orderId})
-        MATCH (p:Part {id: $partId})
+        MERGE (o:Order {id: $orderId})
+        MERGE (p:Part {id: $partId})
         MERGE (o)-[r:CONTAINS]->(p)
         ON CREATE SET
           r.quantity = $quantity,
@@ -543,8 +543,8 @@ export class EventConsumerController {
 
       await this.neo4j.write(
         `
-        MATCH (g:User {id: $garageId})
-        MATCH (s:User {id: $supplierId})
+        MERGE (g:User:Garage {id: $garageId})
+        MERGE (s:User:Supplier {id: $supplierId})
         MERGE (g)-[r:ORDERED_FROM]->(s)
         ON CREATE SET
           r.orderCount = 1,

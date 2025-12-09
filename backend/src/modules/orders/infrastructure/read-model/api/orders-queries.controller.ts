@@ -43,18 +43,22 @@ export class OrdersQueriesController {
   ) {}
 
   @Get('my-orders')
-  @Roles(UserRoleEnum.GARAGE)
-  @ApiOperation({ summary: 'Mes commandes (Garage)' })
+  @Roles(UserRoleEnum.GARAGE, UserRoleEnum.ADMIN)
+  @ApiOperation({ summary: 'Mes commandes (Garage/Admin)' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getMyOrders(
-    @CurrentUser() user: { id: string },
+    @CurrentUser() user: { id: string; role: string },
     @Query('status') status?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const filter: Record<string, unknown> = { 'garage.id': user.id };
+    const filter: Record<string, unknown> = {};
+    // Admin sees all orders, Garage sees only their orders
+    if (user.role !== UserRoleEnum.ADMIN) {
+      filter['garage.id'] = user.id;
+    }
     if (status) filter.status = status;
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -81,40 +85,66 @@ export class OrdersQueriesController {
   }
 
   @Get('supplier-orders')
-  @Roles(UserRoleEnum.SUPPLIER)
-  @ApiOperation({ summary: 'Commandes reçues (Supplier)' })
+  @Roles(UserRoleEnum.SUPPLIER, UserRoleEnum.ADMIN)
+  @ApiOperation({ summary: 'Commandes reçues (Supplier/Admin)' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getSupplierOrders(
-    @CurrentUser() user: { id: string },
+    @CurrentUser() user: { id: string; role: string },
     @Query('status') status?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const filter: Record<string, unknown> = { supplierIds: user.id };
-    if (status) filter.status = status;
-
+    const isAdmin = user.role === UserRoleEnum.ADMIN;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const [items, total] = await Promise.all([
-      this.orderModel
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit))
-        .exec(),
-      this.orderModel.countDocuments(filter).exec(),
-    ]);
+    // Build match stage
+    const matchStage: Record<string, unknown> = {};
+    if (!isAdmin) {
+      matchStage.supplierIds = user.id;
+    }
+    if (status) {
+      matchStage.status = status;
+    }
 
-    // Filtrer les lignes pour ne montrer que celles du supplier
-    const filteredItems = items.map((order) => ({
-      ...order.toObject(),
-      lines: order.lines.filter((line) => line.supplierId === user.id),
-    }));
+    // Aggregation pipeline - filter lines at DB level
+    const pipeline: any[] = [
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          items: [
+            { $skip: skip },
+            { $limit: Number(limit) },
+            // Filter lines only for non-admin users
+            ...(isAdmin
+              ? []
+              : [
+                  {
+                    $addFields: {
+                      lines: {
+                        $filter: {
+                          input: '$lines',
+                          as: 'line',
+                          cond: { $eq: ['$$line.supplierId', user.id] },
+                        },
+                      },
+                    },
+                  },
+                ]),
+          ],
+          totalCount: [{ $count: 'count' }],
+        },
+      },
+    ];
+
+    const result = await this.orderModel.aggregate(pipeline).exec();
+    const items = result[0]?.items || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
 
     return {
-      items: filteredItems,
+      items,
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -125,12 +155,12 @@ export class OrdersQueriesController {
   }
 
   @Get('analytics/my-top-suppliers')
-  @Roles(UserRoleEnum.GARAGE)
+  @Roles(UserRoleEnum.GARAGE, UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Mes top fournisseurs (Garage)' })
   async getMyTopSuppliers(@CurrentUser() user: { id: string }) {
     const result = await this.neo4j.read(
       `
-      MATCH (g:User {id: $garageId})-[r:ORDERED_FROM]->(s:User)
+      MATCH (g:Garage {id: $garageId})-[r:ORDERED_FROM]->(s:Supplier)
       RETURN
         s.id as supplierId,
         s.companyName as companyName,

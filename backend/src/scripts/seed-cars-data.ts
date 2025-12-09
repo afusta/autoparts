@@ -1127,19 +1127,19 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
       console.log('  ⚠ Constraints may already exist, continuing...');
     }
 
-    // Create Garage and Supplier nodes
+    // Create Garage and Supplier nodes (with User label for consistency)
     for (const user of users) {
       if (user.role === 'GARAGE') {
         await neo4jService.write(
-          `MERGE (g:Garage {id: $id})
-           SET g.name = $name, g.email = $email`,
-          { id: user.id, name: user.companyName, email: user.email },
+          `MERGE (g:User:Garage {id: $id})
+           SET g.companyName = $companyName, g.email = $email, g.role = $role`,
+          { id: user.id, companyName: user.companyName, email: user.email, role: user.role },
         );
       } else if (user.role === 'SUPPLIER') {
         await neo4jService.write(
-          `MERGE (s:Supplier {id: $id})
-           SET s.name = $name, s.email = $email`,
-          { id: user.id, name: user.companyName, email: user.email },
+          `MERGE (s:User:Supplier {id: $id})
+           SET s.companyName = $companyName, s.email = $email, s.role = $role`,
+          { id: user.id, companyName: user.companyName, email: user.email, role: user.role },
         );
       }
     }
@@ -1193,7 +1193,7 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
     }
     console.log('  ✓ Created Part and Vehicle nodes with relationships');
 
-    // Create ORDERED relationships
+    // Create ORDERED relationships (Garage -> Part)
     for (const order of orders) {
       if (order.status === 'CANCELLED') continue;
 
@@ -1212,6 +1212,39 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
       }
     }
     console.log('  ✓ Created ORDERED relationships');
+
+    // Create ORDERED_FROM relationships (Garage -> Supplier) for analytics
+    const garageSupplierTotals = new Map<string, { orderCount: number; totalSpentInCents: number }>();
+
+    for (const order of orders) {
+      if (order.status === 'CANCELLED') continue;
+
+      for (const line of order.lines || []) {
+        const key = `${order.garageId}|${line.supplierId}`;
+        const existing = garageSupplierTotals.get(key) || { orderCount: 0, totalSpentInCents: 0 };
+        existing.orderCount += 1;
+        existing.totalSpentInCents += line.unitPriceInCents * line.quantity;
+        garageSupplierTotals.set(key, existing);
+      }
+    }
+
+    for (const [key, totals] of garageSupplierTotals) {
+      const [garageId, supplierId] = key.split('|');
+      await neo4jService.write(
+        `MATCH (g:Garage {id: $garageId}), (s:Supplier {id: $supplierId})
+         MERGE (g)-[r:ORDERED_FROM]->(s)
+         SET r.orderCount = $orderCount,
+             r.totalSpentInCents = $totalSpentInCents,
+             r.lastOrderAt = datetime()`,
+        {
+          garageId,
+          supplierId,
+          orderCount: totals.orderCount,
+          totalSpentInCents: totals.totalSpentInCents,
+        },
+      );
+    }
+    console.log('  ✓ Created ORDERED_FROM relationships');
   } catch (error) {
     console.log(`  ⚠ Neo4j seeding failed: ${(error as Error).message}`);
     console.log('  Continuing without Neo4j data...');
