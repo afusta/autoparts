@@ -74,6 +74,9 @@ export class PartRead extends Document {
   @Prop({ required: true, unique: true })
   partId: string; // ID du write model
 
+  @Prop({ required: true })
+  supplierId: string;
+
   @Prop({ required: true, type: SupplierInfo })
   supplier: SupplierInfo;
 
@@ -134,6 +137,7 @@ export const PartReadSchema = SchemaFactory.createForClass(PartRead);
 PartReadSchema.index({ category: 1, brand: 1 });
 PartReadSchema.index({ isActive: 1, 'stock.available': 1 });
 PartReadSchema.index({ 'supplier.id': 1 });
+PartReadSchema.index({ supplierId: 1 });
 
 // Index text pour la recherche full-text
 PartReadSchema.index(

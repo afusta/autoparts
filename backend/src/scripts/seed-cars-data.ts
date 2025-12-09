@@ -15,9 +15,9 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { Neo4jService } from '../infrastructure/neo4j/neo4j.service';
-import { PartRead } from '../projections/mongo/schemas/part-read.schema';
-import { OrderRead } from '../projections/mongo/schemas/order-read.schema';
-import { UserRead } from '../projections/mongo/schemas/user-read.schema';
+import { PartRead } from '../modules/catalog/infrastructure/read-model/schemas/part-read.schema';
+import { OrderRead } from '../modules/orders/infrastructure/read-model/schemas/order-read.schema';
+import { UserRead } from '../modules/identity/infrastructure/read-model/schemas/user-read.schema';
 
 // =============================================================================
 // CARS-INSPIRED DATA

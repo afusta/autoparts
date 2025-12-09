@@ -1,16 +1,7 @@
 // =============================================================================
-// Queries Controller
+// Parts Queries Controller
 // =============================================================================
-// API de lecture optimisées utilisant les Read Models (MongoDB + Neo4j)
-//
-// Ce contrôleur expose des endpoints de lecture rapides qui ne passent pas
-// par les agrégats du domaine. C'est le "Q" de CQRS.
-//
-// Avantages:
-// - Requêtes optimisées pour chaque cas d'usage
-// - Données dénormalisées prêtes à l'emploi
-// - Pas de transformation côté client
-// - Analytique via le graphe Neo4j
+// API de lecture optimisées pour les pièces (MongoDB Read Model)
 // =============================================================================
 
 import {
@@ -30,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { int } from 'neo4j-driver';
 import {
   JwtAuthGuard,
   Roles,
@@ -37,26 +29,20 @@ import {
   CurrentUser,
 } from '@modules/identity/api';
 import { UserRoleEnum } from '@modules/identity/domain/value-objects';
-import { PartRead } from '../mongo/schemas/part-read.schema';
-import { OrderRead } from '../mongo/schemas/order-read.schema';
-import { Neo4jProjectionService } from '../neo4j/services';
+import { PartRead } from '../schemas/part-read.schema';
+import { Neo4jService } from '@infrastructure/neo4j';
 
-@ApiTags('Queries (Read Models)')
+@ApiTags('Queries - Parts')
 @ApiBearerAuth()
 @Controller('queries')
 @UseGuards(JwtAuthGuard, RolesGuard)
-export class QueriesController {
-  private readonly logger = new Logger(QueriesController.name);
+export class PartsQueriesController {
+  private readonly logger = new Logger(PartsQueriesController.name);
 
   constructor(
     @InjectModel(PartRead.name) private partModel: Model<PartRead>,
-    @InjectModel(OrderRead.name) private orderModel: Model<OrderRead>,
-    private readonly neo4jProjection: Neo4jProjectionService,
+    private readonly neo4j: Neo4jService,
   ) {}
-
-  // ===========================================================================
-  // Parts Queries (MongoDB)
-  // ===========================================================================
 
   @Get('parts')
   @ApiOperation({ summary: 'Rechercher des pièces (Read Model optimisé)' })
@@ -169,7 +155,7 @@ export class QueriesController {
 
     // Enrichir avec les pièces souvent commandées ensemble (depuis Neo4j)
     const frequentlyOrderedWith =
-      await this.neo4jProjection.findFrequentlyOrderedTogether(partId, 5);
+      await this.findFrequentlyOrderedTogether(partId, 5);
 
     return {
       ...part.toObject(),
@@ -211,103 +197,6 @@ export class QueriesController {
     };
   }
 
-  // ===========================================================================
-  // Orders Queries (MongoDB)
-  // ===========================================================================
-
-  @Get('my-orders')
-  @Roles(UserRoleEnum.GARAGE)
-  @ApiOperation({ summary: 'Mes commandes (Garage)' })
-  @ApiQuery({ name: 'status', required: false })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getMyOrders(
-    @CurrentUser() user: { id: string },
-    @Query('status') status?: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ) {
-    const filter: Record<string, unknown> = { 'garage.id': user.id };
-    if (status) filter.status = status;
-
-    const skip = (Number(page) - 1) * Number(limit);
-
-    const [items, total] = await Promise.all([
-      this.orderModel
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit))
-        .exec(),
-      this.orderModel.countDocuments(filter).exec(),
-    ]);
-
-    return {
-      items,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        totalPages: Math.ceil(total / Number(limit)),
-      },
-    };
-  }
-
-  @Get('supplier-orders')
-  @Roles(UserRoleEnum.SUPPLIER)
-  @ApiOperation({ summary: 'Commandes reçues (Supplier)' })
-  @ApiQuery({ name: 'status', required: false })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getSupplierOrders(
-    @CurrentUser() user: { id: string },
-    @Query('status') status?: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ) {
-    const filter: Record<string, unknown> = { supplierIds: user.id };
-    if (status) filter.status = status;
-
-    const skip = (Number(page) - 1) * Number(limit);
-
-    const [items, total] = await Promise.all([
-      this.orderModel
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit))
-        .exec(),
-      this.orderModel.countDocuments(filter).exec(),
-    ]);
-
-    // Filtrer les lignes pour ne montrer que celles du supplier
-    const filteredItems = items.map((order) => ({
-      ...order.toObject(),
-      lines: order.lines.filter((line) => line.supplierId === user.id),
-    }));
-
-    return {
-      items: filteredItems,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        totalPages: Math.ceil(total / Number(limit)),
-      },
-    };
-  }
-
-  // ===========================================================================
-  // Analytics Queries (Neo4j)
-  // ===========================================================================
-
-  @Get('analytics/my-top-suppliers')
-  @Roles(UserRoleEnum.GARAGE)
-  @ApiOperation({ summary: 'Mes top fournisseurs (Garage)' })
-  async getMyTopSuppliers(@CurrentUser() user: { id: string }) {
-    return this.neo4jProjection.findTopSuppliersForGarage(user.id);
-  }
-
   @Get('analytics/parts-for-vehicle')
   @ApiOperation({
     summary: 'Pièces compatibles avec un véhicule (Neo4j Graph)',
@@ -320,13 +209,46 @@ export class QueriesController {
     @Query('model') model: string,
     @Query('year') year: number,
   ) {
-    return this.neo4jProjection.findPartsForVehicle(brand, model, Number(year));
+    const vehicleId = `${brand}-${model}`.toLowerCase().replace(/\s+/g, '-');
+
+    const result = await this.neo4j.read(
+      `
+      MATCH (p:Part)-[r:COMPATIBLE_WITH]->(v:Vehicle {id: $vehicleId})
+      WHERE r.yearFrom <= $year AND r.yearTo >= $year
+      RETURN p.id as partId, p.name as name, p.category as category
+      ORDER BY p.category, p.name
+      `,
+      { vehicleId, year: Number(year) },
+    );
+
+    return (result as Record<string, unknown>[]).map((record) => ({
+      partId: record.partId as string,
+      name: record.name as string,
+      category: record.category as string,
+    }));
   }
 
-  @Get('analytics/graph-stats')
-  @Roles(UserRoleEnum.ADMIN)
-  @ApiOperation({ summary: 'Statistiques du graphe (Admin)' })
-  async getGraphStats() {
-    return this.neo4jProjection.getGraphStats();
+  private async findFrequentlyOrderedTogether(
+    partId: string,
+    limit = 5,
+  ): Promise<Array<{ partId: string; count: number }>> {
+    const result = await this.neo4j.read(
+      `
+      MATCH (p1:Part {id: $partId})<-[:CONTAINS]-(o:Order)-[:CONTAINS]->(p2:Part)
+      WHERE p1 <> p2
+      RETURN p2.id as partId, count(o) as count
+      ORDER BY count DESC
+      LIMIT $limit
+      `,
+      { partId, limit: int(limit) },
+    );
+
+    return (result as Record<string, unknown>[]).map((record) => ({
+      partId: record.partId as string,
+      count:
+        typeof record.count === 'number'
+          ? record.count
+          : (record.count as { toNumber: () => number }).toNumber(),
+    }));
   }
 }

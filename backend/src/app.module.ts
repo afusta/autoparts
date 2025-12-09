@@ -3,7 +3,7 @@
 // =============================================================================
 // Ce module configure et assemble tous les composants de l'application:
 //
-// Architecture:
+// Architecture CQRS:
 // ┌─────────────────────────────────────────────────────────────────┐
 // │                        App Module                               │
 // ├─────────────────────────────────────────────────────────────────┤
@@ -15,10 +15,14 @@
 // │                    │  RabbitMQModule      │                    │
 // └─────────────────────────────────────────────────────────────────┘
 //
+// Chaque Feature Module contient:
+// - Write Side: Commands → PostgreSQL
+// - Read Side: Queries → MongoDB (projections intégrées par domaine)
+//
 // Flux d'une requête:
 // HTTP Request → Controller → CommandHandler → Aggregate → Repository → PostgreSQL
 //                                                       ↓
-//                                              Domain Event → RabbitMQ
+//                                              Domain Event → RabbitMQ → Projections
 // =============================================================================
 
 import { Module } from '@nestjs/common';
@@ -40,13 +44,13 @@ import { MongoModule } from '@infrastructure/mongo';
 import { Neo4jModule } from '@infrastructure/neo4j';
 import { RabbitMQModule } from '@infrastructure/rabbitmq';
 
-// Feature Modules
+// Feature Modules (chacun inclut ses propres Read Models)
 import { IdentityModule } from '@modules/identity';
 import { CatalogModule } from '@modules/catalog';
 import { OrdersModule } from '@modules/orders';
 
-// Projections (Read Models)
-import { ProjectionsModule } from './projections';
+// Shared Messaging (EventConsumer + Analytics)
+import { MessagingModule } from '@infrastructure/messaging/messaging.module';
 
 @Module({
   imports: [
@@ -86,15 +90,19 @@ import { ProjectionsModule } from './projections';
     // Feature Modules
     // =========================================================================
     // Bounded Contexts de notre domaine
+    // Chaque module inclut ses propres:
+    // - Commands & Handlers (Write Side → PostgreSQL)
+    // - Queries & Controllers (Read Side → MongoDB)
+    // - Event Handlers (Projections)
     IdentityModule, // Auth, Users, Roles
     CatalogModule, // Parts, Suppliers, Stock
     OrdersModule, // Orders, OrderItems
 
     // =========================================================================
-    // Projections Module
+    // Messaging Module
     // =========================================================================
-    // Gestion des Read Models (MongoDB + Neo4j)
-    ProjectionsModule,
+    // Consommation des événements RabbitMQ et analytics cross-domain
+    MessagingModule,
   ],
 })
 export class AppModule {}
