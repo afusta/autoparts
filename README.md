@@ -34,15 +34,18 @@ Plateforme B2B de commande de pièces automobiles entre garages et fournisseurs.
 │                          BACKEND API (NestJS)                               │
 │                          http://localhost:3000                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐                       │
-│  │  Identity   │   │   Catalog   │   │   Orders    │   ← Bounded Contexts  │
-│  │   Module    │   │   Module    │   │   Module    │                       │
-│  └─────────────┘   └─────────────┘   └─────────────┘                       │
-│         │                 │                 │                               │
-│         └─────────────────┼─────────────────┘                               │
-│                           ▼                                                 │
-│                    Projections Module                                       │
-│              (Event Handlers + Read Models)                                 │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐             │
+│  │    Identity     │ │     Catalog     │ │     Orders      │             │
+│  │     Module      │ │     Module      │ │     Module      │             │
+│  ├─────────────────┤ ├─────────────────┤ ├─────────────────┤             │
+│  │ Write (Commands)│ │ Write (Commands)│ │ Write (Commands)│             │
+│  │ Read (Queries)  │ │ Read (Queries)  │ │ Read (Queries)  │             │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘             │
+│         │                   │                   │                         │
+│         └───────────────────┴───────────────────┘                         │
+│                             ▼                                             │
+│                    Messaging Module                                       │
+│              (Event Consumer + Analytics)                                 │
 └─────────────────────────────────────────────────────────────────────────────┘
          │                           │                           │
          ▼                           ▼                           ▼
@@ -159,6 +162,19 @@ export class Order extends AggregateRoot<OrderProps> {
 | Aggregate + PostgreSQL   | Denormalized Document       |
 | Domain Events → RabbitMQ | Optimized for reads         |
 
+**Architecture CQRS par domaine:**
+```
+modules/{domain}/
+├── api/controllers/           # Commands (POST, PUT, DELETE)
+└── infrastructure/
+    ├── persistence/           # Write Model → PostgreSQL
+    └── read-model/            # Read Model → MongoDB
+        ├── schemas/           # Mongoose schemas
+        ├── services/          # Projection services
+        ├── handlers/          # Event handlers
+        └── api/               # Query controllers (GET)
+```
+
 ### 3. Clean Architecture
 
 ```
@@ -232,7 +248,12 @@ autoparts/
 │       │   ├── postgres/          # TypeORM PostgreSQL
 │       │   ├── mongo/             # Mongoose MongoDB
 │       │   ├── neo4j/             # Neo4j Driver
-│       │   └── rabbitmq/          # RabbitMQ Client
+│       │   ├── rabbitmq/          # RabbitMQ Client
+│       │   ├── messaging/         # Shared Event Consumer
+│       │   │   ├── event-consumer.controller.ts
+│       │   │   └── messaging.module.ts
+│       │   └── api/               # Shared Controllers
+│       │       └── analytics.controller.ts
 │       │
 │       ├── modules/               # Bounded Contexts
 │       │   ├── identity/          # Auth, Users, RBAC
@@ -245,8 +266,13 @@ autoparts/
 │       │   │   │   ├── commands/register-user.command.ts
 │       │   │   │   └── handlers/register-user.handler.ts
 │       │   │   ├── infrastructure/
-│       │   │   │   ├── persistence/{user.orm-entity,user.repository}.ts
-│       │   │   │   └── services/{auth.service,jwt.strategy}.ts
+│       │   │   │   ├── persistence/           # Write Model (PostgreSQL)
+│       │   │   │   │   └── {user.orm-entity,user.repository}.ts
+│       │   │   │   ├── services/{auth.service,jwt.strategy}.ts
+│       │   │   │   └── read-model/            # Read Model (MongoDB) - CQRS
+│       │   │   │       ├── schemas/user-read.schema.ts
+│       │   │   │       ├── services/user-read.service.ts
+│       │   │   │       └── handlers/user-projection.handler.ts
 │       │   │   ├── api/
 │       │   │   │   ├── controllers/auth.controller.ts
 │       │   │   │   ├── dtos/{login,register,auth-response}.dto.ts
@@ -264,10 +290,16 @@ autoparts/
 │       │   │   │   ├── commands/{create-part,update-part}.command.ts
 │       │   │   │   └── handlers/{create-part,update-part}.handler.ts
 │       │   │   ├── infrastructure/
-│       │   │   │   └── persistence/{part.orm-entity,part.repository}.ts
+│       │   │   │   ├── persistence/           # Write Model (PostgreSQL)
+│       │   │   │   │   └── {part.orm-entity,part.repository}.ts
+│       │   │   │   └── read-model/            # Read Model (MongoDB) - CQRS
+│       │   │   │       ├── schemas/part-read.schema.ts
+│       │   │   │       ├── services/part-read.service.ts
+│       │   │   │       ├── handlers/part-projection.handler.ts
+│       │   │   │       └── api/parts-queries.controller.ts
 │       │   │   ├── api/
-│       │   │   │   ├── controllers/parts.controller.ts
-│       │   │   │   └── dtos/{create-part,update-part,part-response,search-parts}.dto.ts
+│       │   │   │   ├── controllers/parts.controller.ts  # Commands only
+│       │   │   │   └── dtos/{create-part,update-part,part-response}.dto.ts
 │       │   │   └── catalog.module.ts
 │       │   │
 │       │   └── orders/            # Orders, Workflow
@@ -280,25 +312,17 @@ autoparts/
 │       │       │   ├── commands/{create-order,update-order-status}.command.ts
 │       │       │   └── handlers/{create-order,update-order-status}.handler.ts
 │       │       ├── infrastructure/
-│       │       │   └── persistence/{order.orm-entity,order.repository}.ts
+│       │       │   ├── persistence/           # Write Model (PostgreSQL)
+│       │       │   │   └── {order.orm-entity,order.repository}.ts
+│       │       │   └── read-model/            # Read Model (MongoDB) - CQRS
+│       │       │       ├── schemas/order-read.schema.ts
+│       │       │       ├── services/order-read.service.ts
+│       │       │       ├── handlers/order-projection.handler.ts
+│       │       │       └── api/orders-queries.controller.ts
 │       │       ├── api/
-│       │       │   ├── controllers/orders.controller.ts
+│       │       │   ├── controllers/orders.controller.ts  # Commands only
 │       │       │   └── dtos/{create-order,update-order-status,order-response}.dto.ts
 │       │       └── orders.module.ts
-│       │
-│       └── projections/           # CQRS Read Side
-│           ├── mongo/
-│           │   ├── schemas/{part-read,order-read,user-read}.schema.ts
-│           │   └── services/mongo-projection.service.ts
-│           ├── neo4j/
-│           │   └── services/neo4j-projection.service.ts
-│           ├── handlers/
-│           │   ├── user-projection.handler.ts
-│           │   ├── part-projection.handler.ts
-│           │   └── order-projection.handler.ts
-│           ├── api/
-│           │   └── queries.controller.ts
-│           └── projections.module.ts
 │
 └── frontend/                       # Next.js 14
     ├── Dockerfile
@@ -454,14 +478,15 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 }
 ```
 
-### Catalogue (`/api/v1/parts`) - Fournisseurs
+### Catalogue (`/api/v1/parts`) - Fournisseurs (Commands)
 
 | Méthode | Endpoint                  | Description        | Rôle     |
 | ------- | ------------------------- | ------------------ | -------- |
 | POST    | `/api/v1/parts`           | Créer une pièce    | SUPPLIER |
-| PATCH   | `/api/v1/parts/:id`       | Modifier une pièce | SUPPLIER |
+| PUT     | `/api/v1/parts/:id`       | Modifier une pièce | SUPPLIER |
 | POST    | `/api/v1/parts/:id/stock` | Ajouter du stock   | SUPPLIER |
-| GET     | `/api/v1/parts/my`        | Mes pièces         | SUPPLIER |
+
+> **Note CQRS:** Les endpoints de lecture (GET) sont dans `/api/v1/queries/*`
 
 **Créer une pièce:**
 
@@ -490,17 +515,16 @@ curl -X POST http://localhost:3000/api/v1/parts \
   }'
 ```
 
-### Commandes (`/api/v1/orders`)
+### Commandes (`/api/v1/orders`) - Commands
 
 | Méthode | Endpoint                     | Description        | Rôle     |
 | ------- | ---------------------------- | ------------------ | -------- |
 | POST    | `/api/v1/orders`             | Créer une commande | GARAGE   |
-| GET     | `/api/v1/orders/my`          | Mes commandes      | GARAGE   |
-| GET     | `/api/v1/orders/supplier`    | Commandes reçues   | SUPPLIER |
-| GET     | `/api/v1/orders/:id`         | Détail commande    | All      |
 | POST    | `/api/v1/orders/:id/confirm` | Confirmer          | SUPPLIER |
 | POST    | `/api/v1/orders/:id/ship`    | Expédier           | SUPPLIER |
 | POST    | `/api/v1/orders/:id/cancel`  | Annuler            | All      |
+
+> **Note CQRS:** Les endpoints de lecture (GET) sont dans `/api/v1/queries/*`
 
 **Créer une commande:**
 
@@ -522,7 +546,8 @@ curl -X POST http://localhost:3000/api/v1/orders \
 | Méthode | Endpoint                                      | Description                    | Rôle     |
 | ------- | --------------------------------------------- | ------------------------------ | -------- |
 | GET     | `/api/v1/queries/parts`                       | Recherche pièces (MongoDB)     | All      |
-| GET     | `/api/v1/queries/parts/:id`                   | Détail pièce + recommandations | All      |
+| GET     | `/api/v1/queries/parts/:partId`               | Détail pièce + recommandations | All      |
+| GET     | `/api/v1/queries/my-parts`                    | Mes pièces (MongoDB)           | SUPPLIER |
 | GET     | `/api/v1/queries/my-orders`                   | Mes commandes (MongoDB)        | GARAGE   |
 | GET     | `/api/v1/queries/supplier-orders`             | Commandes reçues (MongoDB)     | SUPPLIER |
 | GET     | `/api/v1/queries/analytics/my-top-suppliers`  | Top fournisseurs (Neo4j)       | GARAGE   |
