@@ -25,21 +25,111 @@ import { UserRead } from '../projections/mongo/schemas/user-read.schema';
 
 // Vehicle types based on Cars characters
 const CARS_VEHICLES = [
-  { brand: 'Stock Car', model: 'Lightning McQueen', yearFrom: 2006, yearTo: 2017, engine: 'V8 Racing' },
-  { brand: 'Tow Truck', model: 'Mater', yearFrom: 1951, yearTo: 1957, engine: 'Inline-6' },
-  { brand: 'Porsche', model: 'Sally Carrera 911', yearFrom: 2002, yearTo: 2006, engine: 'Flat-6' },
-  { brand: 'Hudson', model: 'Doc Hornet', yearFrom: 1951, yearTo: 1954, engine: 'Twin-H V8' },
-  { brand: 'Chevrolet', model: 'Ramone Impala', yearFrom: 1959, yearTo: 1959, engine: 'V8' },
-  { brand: 'Motorama', model: 'Flo Show Car', yearFrom: 1957, yearTo: 1957, engine: 'V8' },
-  { brand: 'Mercury', model: 'Sheriff Cruiser', yearFrom: 1949, yearTo: 1951, engine: 'Flathead V8' },
-  { brand: 'Volkswagen', model: 'Fillmore Bus', yearFrom: 1960, yearTo: 1967, engine: 'Flat-4' },
-  { brand: 'Willys', model: 'Sarge Jeep', yearFrom: 1942, yearTo: 1945, engine: 'Go Devil' },
-  { brand: 'Fire Truck', model: 'Red', yearFrom: 1960, yearTo: 1970, engine: 'Diesel V8' },
-  { brand: 'Mack', model: 'Semi Truck', yearFrom: 1985, yearTo: 2020, engine: 'Diesel' },
-  { brand: 'Stock Car', model: 'Chick Hicks', yearFrom: 2006, yearTo: 2017, engine: 'V8 Racing' },
-  { brand: 'Plymouth', model: 'The King Superbird', yearFrom: 1970, yearTo: 1970, engine: 'Hemi V8' },
-  { brand: 'Aston Martin', model: 'Finn McMissile', yearFrom: 2011, yearTo: 2011, engine: 'V12' },
-  { brand: 'Formula', model: 'Francesco Bernoulli', yearFrom: 2011, yearTo: 2011, engine: 'V8 F1' },
+  {
+    brand: 'Stock Car',
+    model: 'Lightning McQueen',
+    yearFrom: 2006,
+    yearTo: 2017,
+    engine: 'V8 Racing',
+  },
+  {
+    brand: 'Tow Truck',
+    model: 'Mater',
+    yearFrom: 1951,
+    yearTo: 1957,
+    engine: 'Inline-6',
+  },
+  {
+    brand: 'Porsche',
+    model: 'Sally Carrera 911',
+    yearFrom: 2002,
+    yearTo: 2006,
+    engine: 'Flat-6',
+  },
+  {
+    brand: 'Hudson',
+    model: 'Doc Hornet',
+    yearFrom: 1951,
+    yearTo: 1954,
+    engine: 'Twin-H V8',
+  },
+  {
+    brand: 'Chevrolet',
+    model: 'Ramone Impala',
+    yearFrom: 1959,
+    yearTo: 1959,
+    engine: 'V8',
+  },
+  {
+    brand: 'Motorama',
+    model: 'Flo Show Car',
+    yearFrom: 1957,
+    yearTo: 1957,
+    engine: 'V8',
+  },
+  {
+    brand: 'Mercury',
+    model: 'Sheriff Cruiser',
+    yearFrom: 1949,
+    yearTo: 1951,
+    engine: 'Flathead V8',
+  },
+  {
+    brand: 'Volkswagen',
+    model: 'Fillmore Bus',
+    yearFrom: 1960,
+    yearTo: 1967,
+    engine: 'Flat-4',
+  },
+  {
+    brand: 'Willys',
+    model: 'Sarge Jeep',
+    yearFrom: 1942,
+    yearTo: 1945,
+    engine: 'Go Devil',
+  },
+  {
+    brand: 'Fire Truck',
+    model: 'Red',
+    yearFrom: 1960,
+    yearTo: 1970,
+    engine: 'Diesel V8',
+  },
+  {
+    brand: 'Mack',
+    model: 'Semi Truck',
+    yearFrom: 1985,
+    yearTo: 2020,
+    engine: 'Diesel',
+  },
+  {
+    brand: 'Stock Car',
+    model: 'Chick Hicks',
+    yearFrom: 2006,
+    yearTo: 2017,
+    engine: 'V8 Racing',
+  },
+  {
+    brand: 'Plymouth',
+    model: 'The King Superbird',
+    yearFrom: 1970,
+    yearTo: 1970,
+    engine: 'Hemi V8',
+  },
+  {
+    brand: 'Aston Martin',
+    model: 'Finn McMissile',
+    yearFrom: 2011,
+    yearTo: 2011,
+    engine: 'V12',
+  },
+  {
+    brand: 'Formula',
+    model: 'Francesco Bernoulli',
+    yearFrom: 2011,
+    yearTo: 2011,
+    engine: 'V8 F1',
+  },
 ];
 
 // Users - Garages (Radiator Springs businesses)
@@ -48,19 +138,22 @@ const GARAGES = [
     email: 'luigi@casadellatires.com',
     password: 'LuigiTires123',
     companyName: "Luigi's Casa Della Tires",
-    description: 'Finest tires in Carburetor County! Home of the Fettuccini Alfredo whitewalls.',
+    description:
+      'Finest tires in Carburetor County! Home of the Fettuccini Alfredo whitewalls.',
   },
   {
     email: 'ramone@houseofbodyart.com',
     password: 'Ramone2023!',
     companyName: "Ramone's House of Body Art",
-    description: 'Custom paint jobs and body work. Low and slow is the way to go!',
+    description:
+      'Custom paint jobs and body work. Low and slow is the way to go!',
   },
   {
     email: 'doc@hudsonracing.com',
     password: 'DocHudson51',
     companyName: "Doc Hudson's Racing Clinic",
-    description: 'Racing repairs and performance tuning by a 3-time Piston Cup champion.',
+    description:
+      'Racing repairs and performance tuning by a 3-time Piston Cup champion.',
   },
   {
     email: 'flo@v8cafe.com',
@@ -82,25 +175,29 @@ const SUPPLIERS = [
     email: 'sales@rusteze.com',
     password: 'Rusteze2023!',
     companyName: 'Rust-eze Medicated Bumper Ointment',
-    description: 'The official sponsor of Lightning McQueen! Rust-eze: With your help, even rusty old cars can be winners!',
+    description:
+      'The official sponsor of Lightning McQueen! Rust-eze: With your help, even rusty old cars can be winners!',
   },
   {
     email: 'parts@dinoco.com',
     password: 'Dinoco2023!',
     companyName: 'Dinoco Oil Company',
-    description: 'The most prestigious sponsor in racing. Premium oils and lubricants.',
+    description:
+      'The most prestigious sponsor in racing. Premium oils and lubricants.',
   },
   {
     email: 'wholesale@lightyeartires.com',
     password: 'Lightyear123',
     companyName: 'Lightyear Tires',
-    description: 'To infinity and beyond! High-performance tires for all vehicles.',
+    description:
+      'To infinity and beyond! High-performance tires for all vehicles.',
   },
   {
     email: 'racing@pistoncup.com',
     password: 'PistonCup123',
     companyName: 'Piston Cup Racing Parts',
-    description: 'Official racing parts supplier for the Piston Cup racing series.',
+    description:
+      'Official racing parts supplier for the Piston Cup racing series.',
   },
   {
     email: 'fillmore@organicfuel.com',
@@ -118,21 +215,25 @@ const ADMIN = {
 };
 
 // Parts by supplier
-const PARTS_BY_SUPPLIER: Record<string, Array<{
-  reference: string;
-  name: string;
-  description: string;
-  category: string;
-  brand: string;
-  price: number;
-  initialStock: number;
-  compatibleVehicles: typeof CARS_VEHICLES;
-}>> = {
+const PARTS_BY_SUPPLIER: Record<
+  string,
+  Array<{
+    reference: string;
+    name: string;
+    description: string;
+    category: string;
+    brand: string;
+    price: number;
+    initialStock: number;
+    compatibleVehicles: typeof CARS_VEHICLES;
+  }>
+> = {
   'sales@rusteze.com': [
     {
       reference: 'RUST-001',
       name: 'Rust Prevention Spray',
-      description: 'Advanced rust prevention formula. Keeps your body panels looking new!',
+      description:
+        'Advanced rust prevention formula. Keeps your body panels looking new!',
       category: 'Body Care',
       brand: 'Rust-eze',
       price: 24.99,
@@ -142,7 +243,8 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
     {
       reference: 'RUST-002',
       name: 'Medicated Bumper Ointment',
-      description: 'The original formula! Soothes and protects bumpers from rust and corrosion.',
+      description:
+        'The original formula! Soothes and protects bumpers from rust and corrosion.',
       category: 'Body Care',
       brand: 'Rust-eze',
       price: 19.99,
@@ -162,7 +264,8 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
     {
       reference: 'RUST-004',
       name: 'Undercarriage Protector',
-      description: 'Heavy-duty undercarriage protection. Perfect for desert driving.',
+      description:
+        'Heavy-duty undercarriage protection. Perfect for desert driving.',
       category: 'Body Care',
       brand: 'Rust-eze',
       price: 39.99,
@@ -177,7 +280,9 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Rust-eze',
       price: 89.99,
       initialStock: 50,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Lightning') || v.model.includes('Chick')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) => v.model.includes('Lightning') || v.model.includes('Chick'),
+      ),
     },
   ],
   'parts@dinoco.com': [
@@ -199,7 +304,13 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Dinoco',
       price: 79.99,
       initialStock: 200,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Lightning') || v.model.includes('King') || v.model.includes('Chick') || v.model.includes('Francesco')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) =>
+          v.model.includes('Lightning') ||
+          v.model.includes('King') ||
+          v.model.includes('Chick') ||
+          v.model.includes('Francesco'),
+      ),
     },
     {
       reference: 'DINO-003',
@@ -246,17 +357,25 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
     {
       reference: 'LIGHT-001',
       name: 'Racing Slicks - Piston Cup Edition',
-      description: 'Smooth tires for maximum grip on race tracks. No treads, no limits!',
+      description:
+        'Smooth tires for maximum grip on race tracks. No treads, no limits!',
       category: 'Tires',
       brand: 'Lightyear',
       price: 299.99,
       initialStock: 80,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Lightning') || v.model.includes('King') || v.model.includes('Chick') || v.model.includes('Francesco')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) =>
+          v.model.includes('Lightning') ||
+          v.model.includes('King') ||
+          v.model.includes('Chick') ||
+          v.model.includes('Francesco'),
+      ),
     },
     {
       reference: 'LIGHT-002',
       name: 'All-Season Touring Tires',
-      description: 'Perfect for Route 66 and beyond. Handles all weather conditions.',
+      description:
+        'Perfect for Route 66 and beyond. Handles all weather conditions.',
       category: 'Tires',
       brand: 'Lightyear',
       price: 149.99,
@@ -271,17 +390,23 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Lightyear',
       price: 179.99,
       initialStock: 120,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Mater') || v.model.includes('Sarge') || v.model.includes('Sheriff')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) =>
+          v.model.includes('Mater') ||
+          v.model.includes('Sarge') ||
+          v.model.includes('Sheriff'),
+      ),
     },
     {
       reference: 'LIGHT-004',
       name: 'Fettuccini Alfredo Whitewalls',
-      description: "Luigi's favorite! Classic whitewall tires for that vintage look.",
+      description:
+        "Luigi's favorite! Classic whitewall tires for that vintage look.",
       category: 'Tires',
       brand: 'Lightyear',
       price: 199.99,
       initialStock: 60,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.yearTo < 1970),
+      compatibleVehicles: CARS_VEHICLES.filter((v) => v.yearTo < 1970),
     },
     {
       reference: 'LIGHT-005',
@@ -291,7 +416,9 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Lightyear',
       price: 229.99,
       initialStock: 150,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Sally') || v.model.includes('Finn')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) => v.model.includes('Sally') || v.model.includes('Finn'),
+      ),
     },
     {
       reference: 'LIGHT-006',
@@ -301,7 +428,9 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Lightyear',
       price: 349.99,
       initialStock: 40,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Mack') || v.model.includes('Red')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) => v.model.includes('Mack') || v.model.includes('Red'),
+      ),
     },
   ],
   'racing@pistoncup.com': [
@@ -313,7 +442,9 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Piston Cup',
       price: 449.99,
       initialStock: 50,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.engine?.includes('Racing') || v.engine?.includes('F1')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) => v.engine?.includes('Racing') || v.engine?.includes('F1'),
+      ),
     },
     {
       reference: 'PIST-002',
@@ -333,7 +464,7 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Piston Cup',
       price: 899.99,
       initialStock: 30,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.engine?.includes('V8')),
+      compatibleVehicles: CARS_VEHICLES.filter((v) => v.engine?.includes('V8')),
     },
     {
       reference: 'PIST-004',
@@ -343,7 +474,12 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Piston Cup',
       price: 599.99,
       initialStock: 25,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.model.includes('Lightning') || v.model.includes('King') || v.model.includes('Chick')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) =>
+          v.model.includes('Lightning') ||
+          v.model.includes('King') ||
+          v.model.includes('Chick'),
+      ),
     },
     {
       reference: 'PIST-005',
@@ -353,7 +489,9 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Piston Cup',
       price: 1299.99,
       initialStock: 20,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.engine?.includes('Racing') || v.engine?.includes('V8')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) => v.engine?.includes('Racing') || v.engine?.includes('V8'),
+      ),
     },
     {
       reference: 'PIST-006',
@@ -363,7 +501,9 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Piston Cup',
       price: 349.99,
       initialStock: 40,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.engine?.includes('Racing') || v.engine?.includes('F1')),
+      compatibleVehicles: CARS_VEHICLES.filter(
+        (v) => v.engine?.includes('Racing') || v.engine?.includes('F1'),
+      ),
     },
     {
       reference: 'PIST-007',
@@ -373,14 +513,17 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
       brand: 'Piston Cup',
       price: 799.99,
       initialStock: 15,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.engine?.includes('Racing')),
+      compatibleVehicles: CARS_VEHICLES.filter((v) =>
+        v.engine?.includes('Racing'),
+      ),
     },
   ],
   'fillmore@organicfuel.com': [
     {
       reference: 'FILL-001',
       name: 'Organic Fuel Blend',
-      description: 'All natural, organic fuel. Good for you, good for the planet, man!',
+      description:
+        'All natural, organic fuel. Good for you, good for the planet, man!',
       category: 'Fuel',
       brand: 'Fillmore Organic',
       price: 59.99,
@@ -390,12 +533,15 @@ const PARTS_BY_SUPPLIER: Record<string, Array<{
     {
       reference: 'FILL-002',
       name: 'Bio-Diesel Premium',
-      description: 'Made from recycled vegetable oil. Peace and clean emissions.',
+      description:
+        'Made from recycled vegetable oil. Peace and clean emissions.',
       category: 'Fuel',
       brand: 'Fillmore Organic',
       price: 69.99,
       initialStock: 80,
-      compatibleVehicles: CARS_VEHICLES.filter(v => v.engine?.includes('Diesel')),
+      compatibleVehicles: CARS_VEHICLES.filter((v) =>
+        v.engine?.includes('Diesel'),
+      ),
     },
     {
       reference: 'FILL-003',
@@ -442,7 +588,9 @@ async function seedUsers(dataSource: DataSource): Promise<Map<string, string>> {
 
   // Seed Garages
   for (const garage of GARAGES) {
-    const existing = await userRepository.findOne({ where: { email: garage.email } });
+    const existing = await userRepository.findOne({
+      where: { email: garage.email },
+    });
     if (existing) {
       console.log(`  ✓ Garage already exists: ${garage.companyName}`);
       userIdMap.set(garage.email, existing.id);
@@ -465,7 +613,9 @@ async function seedUsers(dataSource: DataSource): Promise<Map<string, string>> {
 
   // Seed Suppliers
   for (const supplier of SUPPLIERS) {
-    const existing = await userRepository.findOne({ where: { email: supplier.email } });
+    const existing = await userRepository.findOne({
+      where: { email: supplier.email },
+    });
     if (existing) {
       console.log(`  ✓ Supplier already exists: ${supplier.companyName}`);
       userIdMap.set(supplier.email, existing.id);
@@ -487,7 +637,9 @@ async function seedUsers(dataSource: DataSource): Promise<Map<string, string>> {
   }
 
   // Seed Admin
-  const existingAdmin = await userRepository.findOne({ where: { email: ADMIN.email } });
+  const existingAdmin = await userRepository.findOne({
+    where: { email: ADMIN.email },
+  });
   if (existingAdmin) {
     console.log(`  ✓ Admin already exists: ${ADMIN.companyName}`);
     userIdMap.set(ADMIN.email, existingAdmin.id);
@@ -512,9 +664,29 @@ async function seedUsers(dataSource: DataSource): Promise<Map<string, string>> {
 async function seedParts(
   dataSource: DataSource,
   userIdMap: Map<string, string>,
-): Promise<Map<string, { id: string; supplierId: string; price: number; name: string; reference: string }>> {
+): Promise<
+  Map<
+    string,
+    {
+      id: string;
+      supplierId: string;
+      price: number;
+      name: string;
+      reference: string;
+    }
+  >
+> {
   const partRepository = dataSource.getRepository('parts');
-  const partMap = new Map<string, { id: string; supplierId: string; price: number; name: string; reference: string }>();
+  const partMap = new Map<
+    string,
+    {
+      id: string;
+      supplierId: string;
+      price: number;
+      name: string;
+      reference: string;
+    }
+  >();
 
   console.log('\n🔧 Seeding Parts...');
 
@@ -531,7 +703,9 @@ async function seedParts(
       });
 
       if (existing) {
-        console.log(`  ✓ Part already exists: ${partData.reference} - ${partData.name}`);
+        console.log(
+          `  ✓ Part already exists: ${partData.reference} - ${partData.name}`,
+        );
         partMap.set(partData.reference, {
           id: existing.id,
           supplierId,
@@ -576,7 +750,16 @@ async function seedParts(
 async function seedOrders(
   dataSource: DataSource,
   userIdMap: Map<string, string>,
-  partMap: Map<string, { id: string; supplierId: string; price: number; name: string; reference: string }>,
+  partMap: Map<
+    string,
+    {
+      id: string;
+      supplierId: string;
+      price: number;
+      name: string;
+      reference: string;
+    }
+  >,
 ): Promise<void> {
   const orderRepository = dataSource.getRepository('orders');
   const partRepository = dataSource.getRepository('parts');
@@ -659,7 +842,9 @@ async function seedOrders(
     });
 
     if (existingOrders.length > 0) {
-      console.log(`  ✓ Order already exists for ${orderData.garageName} (${orderData.status})`);
+      console.log(
+        `  ✓ Order already exists for ${orderData.garageName} (${orderData.status})`,
+      );
       continue;
     }
 
@@ -692,7 +877,9 @@ async function seedOrders(
 
       // Reserve stock for non-cancelled orders
       if (orderData.status !== 'CANCELLED') {
-        const part = await partRepository.findOne({ where: { id: partInfo.id } });
+        const part = await partRepository.findOne({
+          where: { id: partInfo.id },
+        });
         if (part) {
           // For DELIVERED orders, reduce actual stock; for others, increase reserved
           if (orderData.status === 'DELIVERED') {
@@ -723,7 +910,9 @@ async function seedOrders(
     });
 
     await orderRepository.save(order);
-    console.log(`  ✓ Created order: ${orderData.garageName} - ${orderData.status} (${(totalInCents / 100).toFixed(2)}€)`);
+    console.log(
+      `  ✓ Created order: ${orderData.garageName} - ${orderData.status} (${(totalInCents / 100).toFixed(2)}€)`,
+    );
   }
 }
 
@@ -737,7 +926,9 @@ async function seedMongoReadModels(
   // Get MongoDB models using the class names
   const UserReadModel: Model<UserRead> = app.get(getModelToken(UserRead.name));
   const PartReadModel: Model<PartRead> = app.get(getModelToken(PartRead.name));
-  const OrderReadModel: Model<OrderRead> = app.get(getModelToken(OrderRead.name));
+  const OrderReadModel: Model<OrderRead> = app.get(
+    getModelToken(OrderRead.name),
+  );
 
   // Get data from PostgreSQL
   const userRepository = dataSource.getRepository('users');
@@ -754,12 +945,14 @@ async function seedMongoReadModels(
     }
 
     // Count orders for garages, parts for suppliers
-    const orderCount = user.role === 'GARAGE'
-      ? await orderRepository.count({ where: { garageId: user.id } })
-      : 0;
-    const partCount = user.role === 'SUPPLIER'
-      ? await partRepository.count({ where: { supplierId: user.id } })
-      : 0;
+    const orderCount =
+      user.role === 'GARAGE'
+        ? await orderRepository.count({ where: { garageId: user.id } })
+        : 0;
+    const partCount =
+      user.role === 'SUPPLIER'
+        ? await partRepository.count({ where: { supplierId: user.id } })
+        : 0;
 
     await UserReadModel.create({
       userId: user.id,
@@ -784,7 +977,9 @@ async function seedMongoReadModels(
       continue;
     }
 
-    const supplier = await userRepository.findOne({ where: { id: part.supplierId } });
+    const supplier = await userRepository.findOne({
+      where: { id: part.supplierId },
+    });
     const priceInEuros = part.priceInCents / 100;
     const available = part.stockQuantity - (part.stockReserved || 0);
 
@@ -812,7 +1007,8 @@ async function seedMongoReadModels(
       },
       compatibleVehicles: (part.compatibleVehicles || []).map((v: any) => ({
         ...v,
-        searchText: `${v.brand} ${v.model} ${v.yearFrom}-${v.yearTo} ${v.engine || ''}`.trim(),
+        searchText:
+          `${v.brand} ${v.model} ${v.yearFrom}-${v.yearTo} ${v.engine || ''}`.trim(),
       })),
       vehiclesSearchText: (part.compatibleVehicles || [])
         .map((v: any) => `${v.brand} ${v.model} ${v.engine || ''}`)
@@ -830,17 +1026,23 @@ async function seedMongoReadModels(
   for (const order of orders) {
     const existing = await OrderReadModel.findOne({ orderId: order.id });
     if (existing) {
-      console.log(`  ✓ Order read model exists: ${order.id.substring(0, 8)}...`);
+      console.log(
+        `  ✓ Order read model exists: ${order.id.substring(0, 8)}...`,
+      );
       continue;
     }
 
-    const supplierIds = [...new Set((order.lines || []).map((l: any) => l.supplierId))];
+    const supplierIds = [
+      ...new Set((order.lines || []).map((l: any) => l.supplierId)),
+    ];
     const totalInEuros = order.totalInCents / 100;
 
     // Enrich lines with supplier names
     const enrichedLines = await Promise.all(
       (order.lines || []).map(async (line: any) => {
-        const supplier = await userRepository.findOne({ where: { id: line.supplierId } });
+        const supplier = await userRepository.findOne({
+          where: { id: line.supplierId },
+        });
         const unitPrice = line.unitPriceInCents / 100;
         const total = unitPrice * line.quantity;
         return {
@@ -879,7 +1081,9 @@ async function seedMongoReadModels(
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     });
-    console.log(`  ✓ Created order read model: ${order.garageName} - ${order.status}`);
+    console.log(
+      `  ✓ Created order read model: ${order.garageName} - ${order.status}`,
+    );
   }
 }
 
@@ -905,10 +1109,18 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
 
     // Create constraints (idempotent) - Neo4j 4.x syntax
     try {
-      await neo4jService.write(`CREATE CONSTRAINT garage_id IF NOT EXISTS FOR (g:Garage) REQUIRE g.id IS UNIQUE`);
-      await neo4jService.write(`CREATE CONSTRAINT supplier_id IF NOT EXISTS FOR (s:Supplier) REQUIRE s.id IS UNIQUE`);
-      await neo4jService.write(`CREATE CONSTRAINT part_id IF NOT EXISTS FOR (p:Part) REQUIRE p.id IS UNIQUE`);
-      await neo4jService.write(`CREATE CONSTRAINT vehicle_id IF NOT EXISTS FOR (v:Vehicle) REQUIRE v.id IS UNIQUE`);
+      await neo4jService.write(
+        `CREATE CONSTRAINT garage_id IF NOT EXISTS FOR (g:Garage) REQUIRE g.id IS UNIQUE`,
+      );
+      await neo4jService.write(
+        `CREATE CONSTRAINT supplier_id IF NOT EXISTS FOR (s:Supplier) REQUIRE s.id IS UNIQUE`,
+      );
+      await neo4jService.write(
+        `CREATE CONSTRAINT part_id IF NOT EXISTS FOR (p:Part) REQUIRE p.id IS UNIQUE`,
+      );
+      await neo4jService.write(
+        `CREATE CONSTRAINT vehicle_id IF NOT EXISTS FOR (v:Vehicle) REQUIRE v.id IS UNIQUE`,
+      );
       console.log('  ✓ Created Neo4j constraints');
     } catch (e) {
       // Constraints might already exist or syntax differs by Neo4j version
@@ -957,7 +1169,9 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
 
       // Create Vehicle nodes and COMPATIBLE_WITH relationships
       for (const vehicle of part.compatibleVehicles || []) {
-        const vehicleId = `${vehicle.brand}-${vehicle.model}`.toLowerCase().replace(/\s+/g, '-');
+        const vehicleId = `${vehicle.brand}-${vehicle.model}`
+          .toLowerCase()
+          .replace(/\s+/g, '-');
         await neo4jService.write(
           `MERGE (v:Vehicle {id: $id})
            SET v.brand = $brand, v.model = $model, v.yearFrom = $yearFrom, v.yearTo = $yearTo`,

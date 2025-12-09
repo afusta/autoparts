@@ -1,30 +1,23 @@
 // =============================================================================
-// Orders Controller
+// Orders Controller (Commands Only - CQRS Write Side)
 // =============================================================================
-// Controller REST pour la gestion des commandes
+// Controller REST pour les commandes d'écriture uniquement.
+// Les lectures passent par /api/v1/queries/* (voir queries.controller.ts)
 //
 // Endpoints Garage:
 // - POST   /orders           : Créer une commande
-// - GET    /orders/my        : Mes commandes (garage)
 // - POST   /orders/:id/cancel: Annuler ma commande
 //
 // Endpoints Supplier:
-// - GET    /orders/supplier  : Commandes de mes pièces
 // - POST   /orders/:id/confirm: Confirmer une commande
 // - POST   /orders/:id/ship  : Expédier une commande
-//
-// Endpoints communs:
-// - GET    /orders/:id       : Détail d'une commande
-// - GET    /orders/stats     : Statistiques
 // =============================================================================
 
 import {
   Controller,
   Post,
-  Get,
   Body,
   Param,
-  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -50,13 +43,7 @@ import {
   ShipOrderCommand,
   CancelOrderCommand,
 } from '../../application/commands';
-import {
-  CreateOrderDto,
-  CancelOrderDto,
-  OrderResponseDto,
-  PaginatedOrdersResponseDto,
-  OrderStatsDto,
-} from '../dtos';
+import { CreateOrderDto, CancelOrderDto, OrderResponseDto } from '../dtos';
 import { JwtAuthGuard, RolesGuard } from '@modules/identity/api/guards';
 import { Roles } from '@modules/identity/api/decorators/roles.decorator';
 import {
@@ -99,122 +86,6 @@ export class OrdersController {
     const order = await this.commandBus.execute<CreateOrderCommand, Order>(
       command,
     );
-    return this.toResponse(order);
-  }
-
-  // ===========================================================================
-  // GET /orders/my - Mes commandes (Garage)
-  // ===========================================================================
-  @Get('my')
-  @UseGuards(RolesGuard)
-  @Roles(UserRoleEnum.GARAGE)
-  @ApiOperation({ summary: 'Get my orders', description: 'Garage only' })
-  @ApiResponse({ status: 200, type: PaginatedOrdersResponseDto })
-  async getMyOrders(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ): Promise<PaginatedOrdersResponseDto> {
-    const result = await this.orderRepository.findByGarage(user.id, {
-      page,
-      limit,
-    });
-
-    return {
-      data: result.data.map((o) => this.toResponse(o)),
-      total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
-    };
-  }
-
-  // ===========================================================================
-  // GET /orders/supplier - Commandes de mes pièces (Supplier)
-  // ===========================================================================
-  @Get('supplier')
-  @UseGuards(RolesGuard)
-  @Roles(UserRoleEnum.SUPPLIER)
-  @ApiOperation({
-    summary: 'Get orders involving my products',
-    description: 'Supplier only',
-  })
-  @ApiResponse({ status: 200, type: PaginatedOrdersResponseDto })
-  async getSupplierOrders(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ): Promise<PaginatedOrdersResponseDto> {
-    const result = await this.orderRepository.findBySupplier(user.id, {
-      page,
-      limit,
-    });
-
-    return {
-      data: result.data.map((o) => this.toResponse(o)),
-      total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
-    };
-  }
-
-  // ===========================================================================
-  // GET /orders/stats - Statistiques
-  // ===========================================================================
-  @Get('stats')
-  @ApiOperation({ summary: 'Get order statistics' })
-  @ApiResponse({ status: 200, type: OrderStatsDto })
-  async getStats(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<OrderStatsDto> {
-    let counts;
-
-    if (user.role === UserRoleEnum.GARAGE) {
-      counts = await this.orderRepository.countByStatusForGarage(user.id);
-    } else if (user.role === UserRoleEnum.SUPPLIER) {
-      counts = await this.orderRepository.countByStatusForSupplier(user.id);
-    } else {
-      // Admin: TODO implémenter stats globales
-      counts = await this.orderRepository.countByStatusForGarage(user.id);
-    }
-
-    return {
-      pending: counts.PENDING,
-      confirmed: counts.CONFIRMED,
-      shipped: counts.SHIPPED,
-      delivered: counts.DELIVERED,
-      cancelled: counts.CANCELLED,
-    };
-  }
-
-  // ===========================================================================
-  // GET /orders/:id - Détail d'une commande
-  // ===========================================================================
-  @Get(':id')
-  @ApiOperation({ summary: 'Get order details' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiResponse({ status: 200, type: OrderResponseDto })
-  async getOrder(
-    @Param('id') id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<OrderResponseDto> {
-    const order = await this.orderRepository.findById(id);
-
-    if (!order) {
-      throw new ForbiddenException('Order not found');
-    }
-
-    // Vérifier l'accès
-    const canAccess =
-      order.belongsToGarage(user.id) ||
-      order.involvesSupplier(user.id) ||
-      user.role === UserRoleEnum.ADMIN;
-
-    if (!canAccess) {
-      throw new ForbiddenException('Access denied');
-    }
-
     return this.toResponse(order);
   }
 

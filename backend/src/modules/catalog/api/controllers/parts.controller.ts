@@ -1,25 +1,21 @@
 // =============================================================================
-// Parts Controller
+// Parts Controller (Commands Only - CQRS Write Side)
 // =============================================================================
-// Controller REST pour la gestion du catalogue de pièces
+// Controller REST pour les commandes d'écriture uniquement.
+// Les lectures passent par /api/v1/queries/* (voir queries.controller.ts)
 //
 // Endpoints:
 // - POST   /parts           : Créer une pièce (Supplier)
-// - GET    /parts           : Rechercher des pièces (Tous)
-// - GET    /parts/:id       : Détail d'une pièce (Tous)
 // - PUT    /parts/:id       : Modifier une pièce (Supplier owner)
 // - POST   /parts/:id/stock : Ajouter du stock (Supplier owner)
-// - GET    /parts/my        : Mes pièces (Supplier)
 // =============================================================================
 
 import {
   Controller,
   Post,
-  Get,
   Put,
   Body,
   Param,
-  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -48,8 +44,6 @@ import {
   UpdatePartDto,
   UpdateStockDto,
   PartResponseDto,
-  PaginatedPartsResponseDto,
-  SearchPartsDto,
 } from '../dtos';
 import { JwtAuthGuard, RolesGuard } from '@modules/identity/api/guards';
 import { Roles } from '@modules/identity/api/decorators/roles.decorator';
@@ -98,86 +92,6 @@ export class PartsController {
     const part = await this.commandBus.execute<CreatePartCommand, Part>(
       command,
     );
-    return this.toResponse(part);
-  }
-
-  // ===========================================================================
-  // GET /parts - Rechercher des pièces
-  // ===========================================================================
-  @Get()
-  @ApiOperation({ summary: 'Search parts', description: 'Public endpoint' })
-  @ApiResponse({ status: 200, type: PaginatedPartsResponseDto })
-  async searchParts(
-    @Query() query: SearchPartsDto,
-  ): Promise<PaginatedPartsResponseDto> {
-    const result = await this.partRepository.search(
-      {
-        search: query.search,
-        category: query.category,
-        brand: query.brand,
-        vehicleBrand: query.vehicleBrand,
-        vehicleModel: query.vehicleModel,
-        vehicleYear: query.vehicleYear,
-        minPrice: query.minPrice,
-        maxPrice: query.maxPrice,
-        inStock: query.inStock,
-        isActive: true,
-      },
-      { page: query.page || 1, limit: query.limit || 20 },
-    );
-
-    return {
-      data: result.data.map((p) => this.toResponse(p)),
-      total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
-    };
-  }
-
-  // ===========================================================================
-  // GET /parts/my - Mes pièces (Supplier)
-  // ===========================================================================
-  @Get('my')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.SUPPLIER)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get my parts', description: 'Supplier only' })
-  @ApiResponse({ status: 200, type: PaginatedPartsResponseDto })
-  async getMyParts(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ): Promise<PaginatedPartsResponseDto> {
-    const result = await this.partRepository.findBySupplier(user.id, {
-      page,
-      limit,
-    });
-
-    return {
-      data: result.data.map((p) => this.toResponse(p)),
-      total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
-    };
-  }
-
-  // ===========================================================================
-  // GET /parts/:id - Détail d'une pièce
-  // ===========================================================================
-  @Get(':id')
-  @ApiOperation({ summary: 'Get part details' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiResponse({ status: 200, type: PartResponseDto })
-  @ApiResponse({ status: 404, description: 'Part not found' })
-  async getPartById(@Param('id') id: string): Promise<PartResponseDto> {
-    const part = await this.partRepository.findById(id);
-
-    if (!part) {
-      throw new Error('Part not found');
-    }
-
     return this.toResponse(part);
   }
 

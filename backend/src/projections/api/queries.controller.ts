@@ -177,6 +177,40 @@ export class QueriesController {
     };
   }
 
+  @Get('my-parts')
+  @Roles(UserRoleEnum.SUPPLIER)
+  @ApiOperation({ summary: 'Mes pièces (Supplier)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getMyParts(
+    @CurrentUser() user: { id: string },
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    const filter: Record<string, unknown> = { supplierId: user.id };
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [items, total] = await Promise.all([
+      this.partModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .exec(),
+      this.partModel.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    };
+  }
+
   // ===========================================================================
   // Orders Queries (MongoDB)
   // ===========================================================================

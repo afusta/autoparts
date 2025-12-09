@@ -166,7 +166,7 @@ export const partsApi = {
     api.get<PaginatedResponse<Part>>("/queries/parts", { params }),
   getById: (partId: string) => api.get<PartDetail>(`/queries/parts/${partId}`),
   getMyParts: (params?: { page?: number; limit?: number }) =>
-    api.get<PaginatedResponse<Part>>("/parts/my", { params }),
+    api.get<PaginatedResponse<Part>>("/queries/my-parts", { params }),
   create: (data: CreatePartDto) => api.post<Part>("/parts", data),
   update: (partId: string, data: UpdatePartDto) =>
     api.put<Part>(`/parts/${partId}`, data),

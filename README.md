@@ -87,18 +87,18 @@ PartCreatedEvent ─────────────────────
 
 ## Stack Technique
 
-| Composant | Technologie | Usage |
-|-----------|-------------|-------|
-| **Backend** | NestJS 10 + TypeScript 5 | API REST, CQRS, DDD |
-| **Frontend** | Next.js 14 + React 18 | Interface utilisateur (App Router) |
-| **Write DB** | PostgreSQL 15 | Source de vérité (Aggregates) |
-| **Read DB** | MongoDB 6 | Projections dénormalisées |
-| **Graph DB** | Neo4j 5 | Relations & Analytics |
-| **Message Broker** | RabbitMQ 3 | Event Bus asynchrone |
-| **Auth** | JWT + Passport + bcrypt | Authentification stateless |
-| **Validation** | class-validator | DTOs validation |
-| **ORM** | TypeORM | PostgreSQL mapping |
-| **ODM** | Mongoose | MongoDB schemas |
+| Composant          | Technologie              | Usage                              |
+| ------------------ | ------------------------ | ---------------------------------- |
+| **Backend**        | NestJS 10 + TypeScript 5 | API REST, CQRS, DDD                |
+| **Frontend**       | Next.js 14 + React 18    | Interface utilisateur (App Router) |
+| **Write DB**       | PostgreSQL 15            | Source de vérité (Aggregates)      |
+| **Read DB**        | MongoDB 6                | Projections dénormalisées          |
+| **Graph DB**       | Neo4j 5                  | Relations & Analytics              |
+| **Message Broker** | RabbitMQ 3               | Event Bus asynchrone               |
+| **Auth**           | JWT + Passport + bcrypt  | Authentification stateless         |
+| **Validation**     | class-validator          | DTOs validation                    |
+| **ORM**            | TypeORM                  | PostgreSQL mapping                 |
+| **ODM**            | Mongoose                 | MongoDB schemas                    |
 
 ---
 
@@ -115,15 +115,20 @@ src/modules/{module}/domain/
 ```
 
 **Exemple - Value Object:**
+
 ```typescript
 // Money est immuable et sans identité
 export class Money extends ValueObject<MoneyProps> {
-  get amount(): number { return this.props.amountInCents; }
-  get currency(): string { return this.props.currency; }
+  get amount(): number {
+    return this.props.amountInCents;
+  }
+  get currency(): string {
+    return this.props.currency;
+  }
 
   add(other: Money): Money {
     if (this.currency !== other.currency) {
-      throw new Error('Cannot add different currencies');
+      throw new Error("Cannot add different currencies");
     }
     return Money.create(this.amount + other.amount, this.currency);
   }
@@ -131,6 +136,7 @@ export class Money extends ValueObject<MoneyProps> {
 ```
 
 **Exemple - Aggregate Root:**
+
 ```typescript
 // Order gère son cycle de vie et émet des Domain Events
 export class Order extends AggregateRoot<OrderProps> {
@@ -146,12 +152,12 @@ export class Order extends AggregateRoot<OrderProps> {
 
 ### 2. CQRS (Command Query Responsibility Segregation)
 
-| Write Side | Read Side |
-|------------|-----------|
-| `POST /api/v1/parts` | `GET /api/v1/queries/parts` |
-| CommandHandler | Direct MongoDB Query |
-| Aggregate + PostgreSQL | Denormalized Document |
-| Domain Events → RabbitMQ | Optimized for reads |
+| Write Side               | Read Side                   |
+| ------------------------ | --------------------------- |
+| `POST /api/v1/parts`     | `GET /api/v1/queries/parts` |
+| CommandHandler           | Direct MongoDB Query        |
+| Aggregate + PostgreSQL   | Denormalized Document       |
+| Domain Events → RabbitMQ | Optimized for reads         |
 
 ### 3. Clean Architecture
 
@@ -357,13 +363,13 @@ docker-compose logs -f api
 
 ### URLs des services
 
-| Service | URL | Identifiants |
-|---------|-----|--------------|
-| **Frontend** | http://localhost:4000 | - |
-| **API** | http://localhost:3000 | - |
-| **Swagger** | http://localhost:3000/api | - |
-| **RabbitMQ** | http://localhost:15672 | guest / guest |
-| **Neo4j Browser** | http://localhost:7474 | neo4j / password123 |
+| Service           | URL                       | Identifiants        |
+| ----------------- | ------------------------- | ------------------- |
+| **Frontend**      | http://localhost:4000     | -                   |
+| **API**           | http://localhost:3000     | -                   |
+| **Swagger**       | http://localhost:3000/api | -                   |
+| **RabbitMQ**      | http://localhost:15672    | guest / guest       |
+| **Neo4j Browser** | http://localhost:7474     | neo4j / password123 |
 
 ### Comptes de test (après `npm run seed`)
 
@@ -371,29 +377,29 @@ Le script de seed crée des utilisateurs inspirés du film Cars de Disney:
 
 **Garages** (peuvent commander des pièces):
 
-| Email | Mot de passe | Entreprise |
-|-------|--------------|------------|
-| luigi@casadellatires.com | LuigiTires123 | Luigi's Casa Della Tires |
-| ramone@houseofbodyart.com | Ramone2023! | Ramone's House of Body Art |
-| doc@hudsonracing.com | DocHudson51 | Doc Hudson's Racing Clinic |
-| flo@v8cafe.com | FloV8Cafe123 | Flo's V8 Cafe & Service |
-| mater@towmater.com | TowMater123! | Mater's Towing & Salvage |
+| Email                     | Mot de passe  | Entreprise                 |
+| ------------------------- | ------------- | -------------------------- |
+| luigi@casadellatires.com  | LuigiTires123 | Luigi's Casa Della Tires   |
+| ramone@houseofbodyart.com | Ramone2023!   | Ramone's House of Body Art |
+| doc@hudsonracing.com      | DocHudson51   | Doc Hudson's Racing Clinic |
+| flo@v8cafe.com            | FloV8Cafe123  | Flo's V8 Cafe & Service    |
+| mater@towmater.com        | TowMater123!  | Mater's Towing & Salvage   |
 
 **Fournisseurs** (peuvent gérer le catalogue):
 
-| Email | Mot de passe | Entreprise |
-|-------|--------------|------------|
-| sales@rusteze.com | Rusteze2023! | Rust-eze Medicated Bumper Ointment |
-| parts@dinoco.com | Dinoco2023! | Dinoco Oil Company |
-| wholesale@lightyeartires.com | Lightyear123 | Lightyear Tires |
-| racing@pistoncup.com | PistonCup123 | Piston Cup Racing Parts |
-| fillmore@organicfuel.com | Organic2023! | Fillmore's Organic Fuel |
+| Email                        | Mot de passe | Entreprise                         |
+| ---------------------------- | ------------ | ---------------------------------- |
+| sales@rusteze.com            | Rusteze2023! | Rust-eze Medicated Bumper Ointment |
+| parts@dinoco.com             | Dinoco2023!  | Dinoco Oil Company                 |
+| wholesale@lightyeartires.com | Lightyear123 | Lightyear Tires                    |
+| racing@pistoncup.com         | PistonCup123 | Piston Cup Racing Parts            |
+| fillmore@organicfuel.com     | Organic2023! | Fillmore's Organic Fuel            |
 
 **Admin**:
 
-| Email | Mot de passe |
-|-------|--------------|
-| admin@radiatorsprings.com | Admin2023! |
+| Email                     | Mot de passe |
+| ------------------------- | ------------ |
+| admin@radiatorsprings.com | Admin2023!   |
 
 ### Développement local (sans Docker)
 
@@ -415,13 +421,14 @@ npm run dev
 
 ### Authentification (`/api/v1/auth`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| POST | `/api/v1/auth/register` | Inscription | Non |
-| POST | `/api/v1/auth/login` | Connexion | Non |
-| GET | `/api/v1/auth/me` | Profil utilisateur | Oui |
+| Méthode | Endpoint                | Description        | Auth |
+| ------- | ----------------------- | ------------------ | ---- |
+| POST    | `/api/v1/auth/register` | Inscription        | Non  |
+| POST    | `/api/v1/auth/login`    | Connexion          | Non  |
+| GET     | `/api/v1/auth/me`       | Profil utilisateur | Oui  |
 
 **Inscription:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
@@ -434,6 +441,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 ```
 
 **Réponse:**
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -448,14 +456,15 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 
 ### Catalogue (`/api/v1/parts`) - Fournisseurs
 
-| Méthode | Endpoint | Description | Rôle |
-|---------|----------|-------------|------|
-| POST | `/api/v1/parts` | Créer une pièce | SUPPLIER |
-| PATCH | `/api/v1/parts/:id` | Modifier une pièce | SUPPLIER |
-| POST | `/api/v1/parts/:id/stock` | Ajouter du stock | SUPPLIER |
-| GET | `/api/v1/parts/my` | Mes pièces | SUPPLIER |
+| Méthode | Endpoint                  | Description        | Rôle     |
+| ------- | ------------------------- | ------------------ | -------- |
+| POST    | `/api/v1/parts`           | Créer une pièce    | SUPPLIER |
+| PATCH   | `/api/v1/parts/:id`       | Modifier une pièce | SUPPLIER |
+| POST    | `/api/v1/parts/:id/stock` | Ajouter du stock   | SUPPLIER |
+| GET     | `/api/v1/parts/my`        | Mes pièces         | SUPPLIER |
 
 **Créer une pièce:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/parts \
   -H "Content-Type: application/json" \
@@ -483,17 +492,18 @@ curl -X POST http://localhost:3000/api/v1/parts \
 
 ### Commandes (`/api/v1/orders`)
 
-| Méthode | Endpoint | Description | Rôle |
-|---------|----------|-------------|------|
-| POST | `/api/v1/orders` | Créer une commande | GARAGE |
-| GET | `/api/v1/orders/my` | Mes commandes | GARAGE |
-| GET | `/api/v1/orders/supplier` | Commandes reçues | SUPPLIER |
-| GET | `/api/v1/orders/:id` | Détail commande | All |
-| POST | `/api/v1/orders/:id/confirm` | Confirmer | SUPPLIER |
-| POST | `/api/v1/orders/:id/ship` | Expédier | SUPPLIER |
-| POST | `/api/v1/orders/:id/cancel` | Annuler | All |
+| Méthode | Endpoint                     | Description        | Rôle     |
+| ------- | ---------------------------- | ------------------ | -------- |
+| POST    | `/api/v1/orders`             | Créer une commande | GARAGE   |
+| GET     | `/api/v1/orders/my`          | Mes commandes      | GARAGE   |
+| GET     | `/api/v1/orders/supplier`    | Commandes reçues   | SUPPLIER |
+| GET     | `/api/v1/orders/:id`         | Détail commande    | All      |
+| POST    | `/api/v1/orders/:id/confirm` | Confirmer          | SUPPLIER |
+| POST    | `/api/v1/orders/:id/ship`    | Expédier           | SUPPLIER |
+| POST    | `/api/v1/orders/:id/cancel`  | Annuler            | All      |
 
 **Créer une commande:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/orders \
   -H "Content-Type: application/json" \
@@ -509,23 +519,25 @@ curl -X POST http://localhost:3000/api/v1/orders \
 
 ### Requêtes Read Models (`/api/v1/queries`)
 
-| Méthode | Endpoint | Description | Rôle |
-|---------|----------|-------------|------|
-| GET | `/api/v1/queries/parts` | Recherche pièces (MongoDB) | All |
-| GET | `/api/v1/queries/parts/:id` | Détail pièce + recommandations | All |
-| GET | `/api/v1/queries/my-orders` | Mes commandes (MongoDB) | GARAGE |
-| GET | `/api/v1/queries/supplier-orders` | Commandes reçues (MongoDB) | SUPPLIER |
-| GET | `/api/v1/queries/analytics/my-top-suppliers` | Top fournisseurs (Neo4j) | GARAGE |
-| GET | `/api/v1/queries/analytics/parts-for-vehicle` | Pièces compatibles (Neo4j) | All |
-| GET | `/api/v1/queries/analytics/graph-stats` | Stats du graphe (Neo4j) | ADMIN |
+| Méthode | Endpoint                                      | Description                    | Rôle     |
+| ------- | --------------------------------------------- | ------------------------------ | -------- |
+| GET     | `/api/v1/queries/parts`                       | Recherche pièces (MongoDB)     | All      |
+| GET     | `/api/v1/queries/parts/:id`                   | Détail pièce + recommandations | All      |
+| GET     | `/api/v1/queries/my-orders`                   | Mes commandes (MongoDB)        | GARAGE   |
+| GET     | `/api/v1/queries/supplier-orders`             | Commandes reçues (MongoDB)     | SUPPLIER |
+| GET     | `/api/v1/queries/analytics/my-top-suppliers`  | Top fournisseurs (Neo4j)       | GARAGE   |
+| GET     | `/api/v1/queries/analytics/parts-for-vehicle` | Pièces compatibles (Neo4j)     | All      |
+| GET     | `/api/v1/queries/analytics/graph-stats`       | Stats du graphe (Neo4j)        | ADMIN    |
 
 **Recherche de pièces:**
+
 ```bash
 curl "http://localhost:3000/api/v1/queries/parts?search=frein&category=Freinage&inStock=true&page=1&limit=20" \
   -H "Authorization: Bearer <token>"
 ```
 
 **Réponse:**
+
 ```json
 {
   "items": [
@@ -701,6 +713,7 @@ CREATE TABLE orders (
 ```
 
 **Requêtes analytiques:**
+
 ```cypher
 -- Pièces souvent commandées ensemble
 MATCH (p1:Part)<-[:CONTAINS]-(o:Order)-[:CONTAINS]->(p2:Part)
@@ -747,6 +760,7 @@ ORDER BY r.totalSpentInCents DESC
 ```
 
 **Règles métier:**
+
 - `PENDING → CONFIRMED` : Seul le fournisseur peut confirmer
 - `CONFIRMED → SHIPPED` : Seul le fournisseur peut expédier
 - `SHIPPED → DELIVERED` : Confirmation de livraison
@@ -861,6 +875,7 @@ JWT_EXPIRES_IN=1d
 ### Conflit de port PostgreSQL
 
 Le projet utilise le port **5433** (au lieu du 5432 standard) pour éviter les conflits avec une installation PostgreSQL locale. Si vous avez modifié ce port, assurez-vous qu'il est cohérent dans:
+
 - `docker-compose.yml`
 - `backend/.env`
 - `.env.example`
@@ -899,9 +914,3 @@ docker-compose logs -f worker
 - [ ] Dashboard analytics avec graphiques
 - [ ] Rate limiting et throttling
 - [ ] Kubernetes deployment
-
----
-
-## Licence
-
-MIT
