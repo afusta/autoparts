@@ -50,7 +50,6 @@ export class PartReadService {
 
     await this.partModel.create({
       partId: data.partId,
-      supplierId: data.supplierId,
       supplier: {
         id: data.supplierId,
         name: data.supplierName,

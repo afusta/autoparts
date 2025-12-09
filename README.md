@@ -165,14 +165,19 @@ export class Order extends AggregateRoot<OrderProps> {
 **Architecture CQRS par domaine:**
 ```
 modules/{domain}/
-├── api/controllers/           # Commands (POST, PUT, DELETE)
+├── api/controllers/           # Commands & Queries controllers
+├── application/
+│   ├── commands/              # Command definitions
+│   ├── queries/               # Query definitions
+│   └── handlers/
+│       ├── commands/          # Command handlers → PostgreSQL
+│       ├── queries/           # Query handlers → MongoDB
+│       └── events/            # Projection handlers (Events → Read Model)
 └── infrastructure/
     ├── persistence/           # Write Model → PostgreSQL
     └── read-model/            # Read Model → MongoDB
         ├── schemas/           # Mongoose schemas
-        ├── services/          # Projection services
-        ├── handlers/          # Event handlers
-        └── api/               # Query controllers (GET)
+        └── services/          # Projection services
 ```
 
 ### 3. Clean Architecture
@@ -288,17 +293,21 @@ autoparts/
 │       │   │   │   └── repositories/part.repository.interface.ts
 │       │   │   ├── application/
 │       │   │   │   ├── commands/{create-part,update-part}.command.ts
-│       │   │   │   └── handlers/{create-part,update-part}.handler.ts
+│       │   │   │   ├── queries/{search-parts,get-part-detail,get-my-parts}.query.ts
+│       │   │   │   └── handlers/
+│       │   │   │       ├── commands/{create-part,update-part}.handler.ts
+│       │   │   │       ├── queries/{search-parts,get-part-detail,get-my-parts}.handler.ts
+│       │   │   │       └── events/part-projection.handler.ts
 │       │   │   ├── infrastructure/
 │       │   │   │   ├── persistence/           # Write Model (PostgreSQL)
 │       │   │   │   │   └── {part.orm-entity,part.repository}.ts
-│       │   │   │   └── read-model/            # Read Model (MongoDB) - CQRS
+│       │   │   │   └── read-model/            # Read Model (MongoDB)
 │       │   │   │       ├── schemas/part-read.schema.ts
-│       │   │   │       ├── services/part-read.service.ts
-│       │   │   │       ├── handlers/part-projection.handler.ts
-│       │   │   │       └── api/parts-queries.controller.ts
+│       │   │   │       └── services/part-read.service.ts
 │       │   │   ├── api/
-│       │   │   │   ├── controllers/parts.controller.ts  # Commands only
+│       │   │   │   ├── controllers/
+│       │   │   │   │   ├── parts.controller.ts         # Commands
+│       │   │   │   │   └── parts-queries.controller.ts # Queries
 │       │   │   │   └── dtos/{create-part,update-part,part-response}.dto.ts
 │       │   │   └── catalog.module.ts
 │       │   │
@@ -310,17 +319,21 @@ autoparts/
 │       │       │   └── repositories/order.repository.interface.ts
 │       │       ├── application/
 │       │       │   ├── commands/{create-order,update-order-status}.command.ts
-│       │       │   └── handlers/{create-order,update-order-status}.handler.ts
+│       │       │   ├── queries/{get-my-orders,get-supplier-orders,get-my-top-suppliers}.query.ts
+│       │       │   └── handlers/
+│       │       │       ├── commands/{create-order,update-order-status}.handler.ts
+│       │       │       ├── queries/{get-my-orders,get-supplier-orders,get-my-top-suppliers}.handler.ts
+│       │       │       └── events/order-projection.handler.ts
 │       │       ├── infrastructure/
 │       │       │   ├── persistence/           # Write Model (PostgreSQL)
 │       │       │   │   └── {order.orm-entity,order.repository}.ts
-│       │       │   └── read-model/            # Read Model (MongoDB) - CQRS
+│       │       │   └── read-model/            # Read Model (MongoDB)
 │       │       │       ├── schemas/order-read.schema.ts
-│       │       │       ├── services/order-read.service.ts
-│       │       │       ├── handlers/order-projection.handler.ts
-│       │       │       └── api/orders-queries.controller.ts
+│       │       │       └── services/order-read.service.ts
 │       │       ├── api/
-│       │       │   ├── controllers/orders.controller.ts  # Commands only
+│       │       │   ├── controllers/
+│       │       │   │   ├── orders.controller.ts         # Commands
+│       │       │   │   └── orders-queries.controller.ts # Queries
 │       │       │   └── dtos/{create-order,update-order-status,order-response}.dto.ts
 │       │       └── orders.module.ts
 │
@@ -375,11 +388,8 @@ docker-compose up -d --build
 # Vérifier que tous les services sont healthy
 docker-compose ps
 
-# Charger les données de test (thème Cars de Disney!)
-cd backend
-npm install
-npm run seed
-cd ..
+# Attendre que tous les services soient prêts (~30s), puis charger les données de test
+docker-compose exec api npm run seed
 
 # Voir les logs de l'API
 docker-compose logs -f api
@@ -916,8 +926,8 @@ Le projet utilise le port **5433** (au lieu du 5432 standard) pour éviter les c
 docker-compose down -v
 docker-compose up -d --build
 
-# Attendre que les services soient prêts, puis recharger les données
-cd backend && npm run seed
+# Attendre que les services soient prêts (~30s), puis recharger les données
+docker-compose exec api npm run seed
 ```
 
 ### Voir les logs

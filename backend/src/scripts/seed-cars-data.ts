@@ -1124,7 +1124,7 @@ async function seedNeo4jGraph(app: any, dataSource: DataSource): Promise<void> {
       console.log('  ✓ Created Neo4j constraints');
     } catch (e) {
       // Constraints might already exist or syntax differs by Neo4j version
-      console.log('  ⚠ Constraints may already exist, continuing...');
+      console.log('  ⚠ Constraints may already exist, continuing...', e);
     }
 
     // Create Garage and Supplier nodes (with User label for consistency)
