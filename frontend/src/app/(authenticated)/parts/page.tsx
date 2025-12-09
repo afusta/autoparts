@@ -479,27 +479,36 @@ export default function PartsPage() {
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                  type="text"
-                  value={vehicleBrand}
-                  onChange={(e) => setVehicleBrand(e.target.value)}
-                  placeholder="Marque (ex: Renault)"
-                  className="input"
-                />
-                <input
-                  type="text"
-                  value={vehicleModel}
-                  onChange={(e) => setVehicleModel(e.target.value)}
-                  placeholder="Modèle (ex: Clio)"
-                  className="input"
-                />
-                <input
-                  type="number"
-                  value={vehicleYear}
-                  onChange={(e) => setVehicleYear(e.target.value)}
-                  placeholder="Année (ex: 2020)"
-                  className="input"
-                />
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Marque du véhicule</label>
+                  <input
+                    type="text"
+                    value={vehicleBrand}
+                    onChange={(e) => setVehicleBrand(e.target.value)}
+                    placeholder="ex: Stock Car, Porsche, Hudson..."
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Modèle du véhicule</label>
+                  <input
+                    type="text"
+                    value={vehicleModel}
+                    onChange={(e) => setVehicleModel(e.target.value)}
+                    placeholder="ex: Lightning McQueen, 911..."
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Année</label>
+                  <input
+                    type="number"
+                    value={vehicleYear}
+                    onChange={(e) => setVehicleYear(e.target.value)}
+                    placeholder="ex: 2010"
+                    className="input"
+                  />
+                </div>
               </div>
             </div>
 
@@ -568,21 +577,27 @@ export default function PartsPage() {
                 {/* Vehicle Compatibility Preview */}
                 {part.compatibleVehicles && part.compatibleVehicles.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs text-gray-400 mb-1">Véhicules compatibles:</p>
-                    <p className="text-xs text-gray-600">
+                    <div className="flex items-center space-x-1 mb-2">
+                      <Car className="h-3 w-3 text-gray-400" />
+                      <p className="text-xs text-gray-400">Véhicules compatibles:</p>
+                    </div>
+                    <div className="space-y-1">
                       {part.compatibleVehicles.slice(0, 2).map((v, i) => (
-                        <span key={i}>
-                          {v.brand} {v.model}
-                          {i < Math.min(part.compatibleVehicles.length, 2) - 1 ? ', ' : ''}
-                        </span>
+                        <div key={i} className="text-xs bg-gray-50 rounded px-2 py-1">
+                          <span className="font-medium text-gray-700">{v.brand}</span>
+                          <span className="text-gray-400 mx-1">|</span>
+                          <span className="text-gray-600">{v.model}</span>
+                          <span className="text-gray-400 ml-1">
+                            ({v.yearFrom}-{v.yearTo})
+                          </span>
+                        </div>
                       ))}
                       {part.compatibleVehicles.length > 2 && (
-                        <span className="text-primary-600">
-                          {' '}
-                          +{part.compatibleVehicles.length - 2} autres
-                        </span>
+                        <p className="text-xs text-primary-600 pl-2">
+                          +{part.compatibleVehicles.length - 2} autres véhicules
+                        </p>
                       )}
-                    </p>
+                    </div>
                   </div>
                 )}
 

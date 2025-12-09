@@ -238,22 +238,52 @@ export default function PartDetailPage() {
               <div className="flex items-center space-x-2 mb-4">
                 <Car className="h-5 w-5 text-primary-600" />
                 <h2 className="text-lg font-semibold">Véhicules compatibles</h2>
+                <span className="text-sm text-gray-500">
+                  ({part.compatibleVehicles.length} véhicule{part.compatibleVehicles.length > 1 ? 's' : ''})
+                </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+              {/* Table Header */}
+              <div className="hidden md:grid md:grid-cols-4 gap-4 px-4 py-2 bg-gray-100 rounded-t-lg text-xs font-semibold text-gray-600 uppercase">
+                <div>Marque</div>
+                <div>Modèle</div>
+                <div>Années</div>
+                <div>Moteur</div>
+              </div>
+
+              <div className="divide-y divide-gray-100">
                 {part.compatibleVehicles.map((vehicle, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4 p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {vehicle.brand} {vehicle.model}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {vehicle.yearFrom} - {vehicle.yearTo}
-                      </p>
+                    {/* Mobile: Labels inline */}
+                    <div className="md:hidden space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Marque:</span>
+                        <span className="font-medium text-gray-900">{vehicle.brand}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Modèle:</span>
+                        <span className="font-medium text-gray-900">{vehicle.model}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Années:</span>
+                        <span className="text-gray-600">{vehicle.yearFrom} - {vehicle.yearTo}</span>
+                      </div>
+                      {vehicle.engine && (
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-500">Moteur:</span>
+                          <span className="text-gray-600">{vehicle.engine}</span>
+                        </div>
+                      )}
                     </div>
-                    <Car className="h-5 w-5 text-gray-400" />
+
+                    {/* Desktop: Table layout */}
+                    <div className="hidden md:block font-medium text-gray-900">{vehicle.brand}</div>
+                    <div className="hidden md:block text-gray-700">{vehicle.model}</div>
+                    <div className="hidden md:block text-gray-600">{vehicle.yearFrom} - {vehicle.yearTo}</div>
+                    <div className="hidden md:block text-gray-500">{vehicle.engine || '-'}</div>
                   </div>
                 ))}
               </div>

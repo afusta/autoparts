@@ -102,22 +102,16 @@ export class PartsQueriesController {
       filter['stock.isOutOfStock'] = false;
     }
 
-    // Filtre véhicule compatible
+    // Filtre véhicule compatible - use $elemMatch for proper array element matching
     if (vehicleBrand || vehicleModel || vehicleYear) {
-      const vehicleFilter: Record<string, unknown> = {};
-      if (vehicleBrand)
-        vehicleFilter['compatibleVehicles.brand'] = vehicleBrand;
-      if (vehicleModel)
-        vehicleFilter['compatibleVehicles.model'] = vehicleModel;
+      const elemMatch: Record<string, unknown> = {};
+      if (vehicleBrand) elemMatch.brand = vehicleBrand;
+      if (vehicleModel) elemMatch.model = vehicleModel;
       if (vehicleYear) {
-        vehicleFilter['compatibleVehicles.yearFrom'] = {
-          $lte: Number(vehicleYear),
-        };
-        vehicleFilter['compatibleVehicles.yearTo'] = {
-          $gte: Number(vehicleYear),
-        };
+        elemMatch.yearFrom = { $lte: Number(vehicleYear) };
+        elemMatch.yearTo = { $gte: Number(vehicleYear) };
       }
-      Object.assign(filter, vehicleFilter);
+      filter.compatibleVehicles = { $elemMatch: elemMatch };
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -154,8 +148,10 @@ export class PartsQueriesController {
     }
 
     // Enrichir avec les pièces souvent commandées ensemble (depuis Neo4j)
-    const frequentlyOrderedWith =
-      await this.findFrequentlyOrderedTogether(partId, 5);
+    const frequentlyOrderedWith = await this.findFrequentlyOrderedTogether(
+      partId,
+      5,
+    );
 
     return {
       ...part.toObject(),
