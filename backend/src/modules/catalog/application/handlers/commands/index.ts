@@ -1,6 +1,6 @@
 // =============================================================================
-// Catalog Read Model Exports
+// Catalog Command Handlers
 // =============================================================================
 
-export * from './schemas/part-read.schema';
-export * from './services/part-read.service';
+export * from './create-part.handler';
+export * from './update-part.handler';

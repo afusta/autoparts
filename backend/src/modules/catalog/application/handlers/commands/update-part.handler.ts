@@ -12,12 +12,12 @@ import {
 import {
   UpdatePartCommand,
   AddStockCommand,
-} from '../commands/update-part.command';
-import { Part } from '../../domain/entities/part.entity';
+} from '../../commands/update-part.command';
+import { Part } from '../../../domain/entities/part.entity';
 import {
   IPartRepository,
   PART_REPOSITORY,
-} from '../../domain/repositories/part.repository.interface';
+} from '../../../domain/repositories/part.repository.interface';
 import { EventPublisherService } from '@infrastructure/rabbitmq';
 
 @CommandHandler(UpdatePartCommand)

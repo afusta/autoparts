@@ -1,6 +1,5 @@
 // =============================================================================
-// Catalog Read Model Exports
+// Orders Event Handlers (Projections)
 // =============================================================================
 
-export * from './schemas/part-read.schema';
-export * from './services/part-read.service';
+export * from './order-projection.handler';

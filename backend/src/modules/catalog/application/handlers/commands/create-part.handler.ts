@@ -4,12 +4,12 @@
 
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, ConflictException, Logger } from '@nestjs/common';
-import { CreatePartCommand } from '../commands/create-part.command';
-import { Part } from '../../domain/entities/part.entity';
+import { CreatePartCommand } from '../../commands/create-part.command';
+import { Part } from '../../../domain/entities/part.entity';
 import {
   IPartRepository,
   PART_REPOSITORY,
-} from '../../domain/repositories/part.repository.interface';
+} from '../../../domain/repositories/part.repository.interface';
 import { EventPublisherService } from '@infrastructure/rabbitmq';
 
 @CommandHandler(CreatePartCommand)

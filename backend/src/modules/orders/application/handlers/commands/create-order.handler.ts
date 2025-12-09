@@ -13,12 +13,12 @@
 
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, BadRequestException, Logger } from '@nestjs/common';
-import { CreateOrderCommand } from '../commands/create-order.command';
-import { Order } from '../../domain/entities/order.entity';
+import { CreateOrderCommand } from '../../commands/create-order.command';
+import { Order } from '../../../domain/entities/order.entity';
 import {
   IOrderRepository,
   ORDER_REPOSITORY,
-} from '../../domain/repositories/order.repository.interface';
+} from '../../../domain/repositories/order.repository.interface';
 import {
   IPartRepository,
   PART_REPOSITORY,

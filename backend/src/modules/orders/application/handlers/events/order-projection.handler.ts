@@ -10,7 +10,7 @@ import {
   OrderCreatedEvent,
   OrderStatusChangedEvent,
 } from '@modules/orders/domain/events';
-import { OrderReadService } from '../services/order-read.service';
+import { OrderReadService } from '../../../infrastructure/read-model/services/order-read.service';
 import { Neo4jService } from '@infrastructure/neo4j';
 
 @Injectable()

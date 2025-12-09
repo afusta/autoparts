@@ -1,6 +1,7 @@
 // =============================================================================
-// Catalog Read Model Exports
+// GetPartDetail Query
 // =============================================================================
 
-export * from './schemas/part-read.schema';
-export * from './services/part-read.service';
+export class GetPartDetailQuery {
+  constructor(public readonly partId: string) {}
+}

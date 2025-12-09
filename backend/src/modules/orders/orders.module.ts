@@ -22,14 +22,27 @@ import { CqrsModule } from '@nestjs/cqrs';
 // Domain
 import { ORDER_REPOSITORY } from './domain/repositories/order.repository.interface';
 
-// Application
-import { CreateOrderHandler } from './application/handlers/create-order.handler';
+// Application - Command Handlers
 import {
+  CreateOrderHandler,
   ConfirmOrderHandler,
   ShipOrderHandler,
   DeliverOrderHandler,
   CancelOrderHandler,
-} from './application/handlers/update-order-status.handler';
+} from './application/handlers/commands';
+
+// Application - Query Handlers
+import {
+  GetMyOrdersHandler,
+  GetSupplierOrdersHandler,
+  GetMyTopSuppliersHandler,
+} from './application/handlers/queries';
+
+// Application - Event Handlers (Projections)
+import {
+  OrderCreatedProjectionHandler,
+  OrderStatusChangedProjectionHandler,
+} from './application/handlers/events';
 
 // Infrastructure - Write Model (PostgreSQL)
 import { OrderOrmEntity } from './infrastructure/persistence/order.orm-entity';
@@ -41,14 +54,10 @@ import {
   OrderReadSchema,
 } from './infrastructure/read-model/schemas/order-read.schema';
 import { OrderReadService } from './infrastructure/read-model/services/order-read.service';
-import {
-  OrderCreatedProjectionHandler,
-  OrderStatusChangedProjectionHandler,
-} from './infrastructure/read-model/handlers/order-projection.handler';
-import { OrdersQueriesController } from './infrastructure/read-model/api/orders-queries.controller';
 
-// API - Commands
+// API - Commands & Queries
 import { OrdersController } from './api/controllers/orders.controller';
+import { OrdersQueriesController } from './api/controllers/orders-queries.controller';
 
 // Modules externes
 import { IdentityModule } from '@modules/identity';
@@ -60,6 +69,12 @@ const CommandHandlers = [
   ShipOrderHandler,
   DeliverOrderHandler,
   CancelOrderHandler,
+];
+
+const QueryHandlers = [
+  GetMyOrdersHandler,
+  GetSupplierOrdersHandler,
+  GetMyTopSuppliersHandler,
 ];
 
 const EventHandlers = [
@@ -88,6 +103,8 @@ const EventHandlers = [
     OrderReadService,
     // Command Handlers
     ...CommandHandlers,
+    // Query Handlers
+    ...QueryHandlers,
     // Event Handlers (Projections)
     ...EventHandlers,
   ],

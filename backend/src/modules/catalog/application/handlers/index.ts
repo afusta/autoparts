@@ -1,2 +1,12 @@
-export * from './create-part.handler';
-export * from './update-part.handler';
+// =============================================================================
+// Catalog Handlers
+// =============================================================================
+
+// Command Handlers
+export * from './commands';
+
+// Query Handlers
+export * from './queries';
+
+// Event Handlers (Projections)
+export * from './events';

@@ -13,11 +13,11 @@ import { Module } from '@nestjs/common';
 import { IdentityModule } from '@modules/identity';
 import { CatalogModule } from '@modules/catalog';
 import { OrdersModule } from '@modules/orders';
+import { AnalyticsModule } from '@infrastructure/analytics/analytics.module';
 import { EventConsumerController } from './event-consumer.controller';
-import { AnalyticsController } from '../api/analytics.controller';
 
 @Module({
-  imports: [IdentityModule, CatalogModule, OrdersModule],
-  controllers: [EventConsumerController, AnalyticsController],
+  imports: [IdentityModule, CatalogModule, OrdersModule, AnalyticsModule],
+  controllers: [EventConsumerController],
 })
 export class MessagingModule {}

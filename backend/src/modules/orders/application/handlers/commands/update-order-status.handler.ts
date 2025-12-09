@@ -14,12 +14,12 @@ import {
   ShipOrderCommand,
   DeliverOrderCommand,
   CancelOrderCommand,
-} from '../commands/update-order-status.command';
-import { Order } from '../../domain/entities/order.entity';
+} from '../../commands/update-order-status.command';
+import { Order } from '../../../domain/entities/order.entity';
 import {
   IOrderRepository,
   ORDER_REPOSITORY,
-} from '../../domain/repositories/order.repository.interface';
+} from '../../../domain/repositories/order.repository.interface';
 import {
   IPartRepository,
   PART_REPOSITORY,

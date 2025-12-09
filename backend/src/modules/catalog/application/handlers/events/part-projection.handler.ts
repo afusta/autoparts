@@ -11,7 +11,7 @@ import {
   PartUpdatedEvent,
   StockUpdatedEvent,
 } from '@modules/catalog/domain/events';
-import { PartReadService } from '../services/part-read.service';
+import { PartReadService } from '../../../infrastructure/read-model/services/part-read.service';
 import { Neo4jService } from '@infrastructure/neo4j';
 
 @Injectable()

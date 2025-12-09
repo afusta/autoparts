@@ -22,12 +22,26 @@ import { CqrsModule } from '@nestjs/cqrs';
 // Domain
 import { PART_REPOSITORY } from './domain/repositories/part.repository.interface';
 
-// Application
-import { CreatePartHandler } from './application/handlers/create-part.handler';
+// Application - Command Handlers
 import {
+  CreatePartHandler,
   UpdatePartHandler,
   AddStockHandler,
-} from './application/handlers/update-part.handler';
+} from './application/handlers/commands';
+
+// Application - Query Handlers
+import {
+  SearchPartsHandler,
+  GetPartDetailHandler,
+  GetMyPartsHandler,
+} from './application/handlers/queries';
+
+// Application - Event Handlers (Projections)
+import {
+  PartCreatedProjectionHandler,
+  PartUpdatedProjectionHandler,
+  StockUpdatedProjectionHandler,
+} from './application/handlers/events';
 
 // Infrastructure - Write Model (PostgreSQL)
 import { PartOrmEntity } from './infrastructure/persistence/part.orm-entity';
@@ -39,20 +53,21 @@ import {
   PartReadSchema,
 } from './infrastructure/read-model/schemas/part-read.schema';
 import { PartReadService } from './infrastructure/read-model/services/part-read.service';
-import {
-  PartCreatedProjectionHandler,
-  PartUpdatedProjectionHandler,
-  StockUpdatedProjectionHandler,
-} from './infrastructure/read-model/handlers/part-projection.handler';
-import { PartsQueriesController } from './infrastructure/read-model/api/parts-queries.controller';
 
-// API - Commands
+// API - Commands & Queries
 import { PartsController } from './api/controllers/parts.controller';
+import { PartsQueriesController } from './api/controllers/parts-queries.controller';
 
 // Identity Module (pour guards et decorators)
 import { IdentityModule } from '@modules/identity';
 
 const CommandHandlers = [CreatePartHandler, UpdatePartHandler, AddStockHandler];
+
+const QueryHandlers = [
+  SearchPartsHandler,
+  GetPartDetailHandler,
+  GetMyPartsHandler,
+];
 
 const EventHandlers = [
   PartCreatedProjectionHandler,
@@ -80,6 +95,8 @@ const EventHandlers = [
     PartReadService,
     // Command Handlers
     ...CommandHandlers,
+    // Query Handlers
+    ...QueryHandlers,
     // Event Handlers (Projections)
     ...EventHandlers,
   ],
