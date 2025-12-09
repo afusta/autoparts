@@ -107,8 +107,10 @@ export default function PartDetailPage() {
     setUpdateError('');
 
     try {
-      const response = await partsApi.update(part.partId, editData);
-      setPart({ ...part, ...response.data });
+      await partsApi.update(part.partId, editData);
+      // Refetch to get updated read model with all fields
+      const refreshed = await partsApi.getById(part.partId);
+      setPart(refreshed.data);
       setShowEditModal(false);
     } catch (err: any) {
       setUpdateError(err.response?.data?.message || 'Failed to update part');
@@ -132,8 +134,10 @@ export default function PartDetailPage() {
     setStockError('');
 
     try {
-      const response = await partsApi.addStock(part.partId, stockQuantity);
-      setPart({ ...part, stock: response.data.stock });
+      await partsApi.addStock(part.partId, stockQuantity);
+      // Refetch to get updated read model with all fields
+      const refreshed = await partsApi.getById(part.partId);
+      setPart(refreshed.data);
       setShowStockModal(false);
     } catch (err: any) {
       setStockError(err.response?.data?.message || 'Failed to add stock');

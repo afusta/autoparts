@@ -193,37 +193,6 @@ export class PartsQueriesController {
     };
   }
 
-  @Get('analytics/parts-for-vehicle')
-  @ApiOperation({
-    summary: 'Pièces compatibles avec un véhicule (Neo4j Graph)',
-  })
-  @ApiQuery({ name: 'brand', required: true })
-  @ApiQuery({ name: 'model', required: true })
-  @ApiQuery({ name: 'year', required: true, type: Number })
-  async getPartsForVehicle(
-    @Query('brand') brand: string,
-    @Query('model') model: string,
-    @Query('year') year: number,
-  ) {
-    const vehicleId = `${brand}-${model}`.toLowerCase().replace(/\s+/g, '-');
-
-    const result = await this.neo4j.read(
-      `
-      MATCH (p:Part)-[r:COMPATIBLE_WITH]->(v:Vehicle {id: $vehicleId})
-      WHERE r.yearFrom <= $year AND r.yearTo >= $year
-      RETURN p.id as partId, p.name as name, p.category as category
-      ORDER BY p.category, p.name
-      `,
-      { vehicleId, year: Number(year) },
-    );
-
-    return (result as Record<string, unknown>[]).map((record) => ({
-      partId: record.partId as string,
-      name: record.name as string,
-      category: record.category as string,
-    }));
-  }
-
   private async findFrequentlyOrderedTogether(
     partId: string,
     limit = 5,

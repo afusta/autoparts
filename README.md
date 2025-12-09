@@ -517,12 +517,13 @@ curl -X POST http://localhost:3000/api/v1/parts \
 
 ### Commandes (`/api/v1/orders`) - Commands
 
-| Méthode | Endpoint                     | Description        | Rôle     |
-| ------- | ---------------------------- | ------------------ | -------- |
-| POST    | `/api/v1/orders`             | Créer une commande | GARAGE   |
-| POST    | `/api/v1/orders/:id/confirm` | Confirmer          | SUPPLIER |
-| POST    | `/api/v1/orders/:id/ship`    | Expédier           | SUPPLIER |
-| POST    | `/api/v1/orders/:id/cancel`  | Annuler            | All      |
+| Méthode | Endpoint                     | Description            | Rôle           |
+| ------- | ---------------------------- | ---------------------- | -------------- |
+| POST    | `/api/v1/orders`             | Créer une commande     | GARAGE         |
+| POST    | `/api/v1/orders/:id/confirm` | Confirmer              | SUPPLIER       |
+| POST    | `/api/v1/orders/:id/ship`    | Expédier               | SUPPLIER       |
+| POST    | `/api/v1/orders/:id/deliver` | Confirmer la réception | GARAGE, ADMIN  |
+| POST    | `/api/v1/orders/:id/cancel`  | Annuler                | All            |
 
 > **Note CQRS:** Les endpoints de lecture (GET) sont dans `/api/v1/queries/*`
 
@@ -543,16 +544,15 @@ curl -X POST http://localhost:3000/api/v1/orders \
 
 ### Requêtes Read Models (`/api/v1/queries`)
 
-| Méthode | Endpoint                                      | Description                    | Rôle     |
-| ------- | --------------------------------------------- | ------------------------------ | -------- |
-| GET     | `/api/v1/queries/parts`                       | Recherche pièces (MongoDB)     | All      |
-| GET     | `/api/v1/queries/parts/:partId`               | Détail pièce + recommandations | All      |
-| GET     | `/api/v1/queries/my-parts`                    | Mes pièces (MongoDB)           | SUPPLIER |
-| GET     | `/api/v1/queries/my-orders`                   | Mes commandes (MongoDB)        | GARAGE   |
-| GET     | `/api/v1/queries/supplier-orders`             | Commandes reçues (MongoDB)     | SUPPLIER |
-| GET     | `/api/v1/queries/analytics/my-top-suppliers`  | Top fournisseurs (Neo4j)       | GARAGE   |
-| GET     | `/api/v1/queries/analytics/parts-for-vehicle` | Pièces compatibles (Neo4j)     | All      |
-| GET     | `/api/v1/queries/analytics/graph-stats`       | Stats du graphe (Neo4j)        | ADMIN    |
+| Méthode | Endpoint                                     | Description                    | Rôle            |
+| ------- | -------------------------------------------- | ------------------------------ | --------------- |
+| GET     | `/api/v1/queries/parts`                      | Recherche pièces (MongoDB)     | All             |
+| GET     | `/api/v1/queries/parts/:partId`              | Détail pièce + recommandations | All             |
+| GET     | `/api/v1/queries/my-parts`                   | Mes pièces (MongoDB)           | SUPPLIER        |
+| GET     | `/api/v1/queries/my-orders`                  | Mes commandes (MongoDB)        | GARAGE, ADMIN   |
+| GET     | `/api/v1/queries/supplier-orders`            | Commandes reçues (MongoDB)     | SUPPLIER, ADMIN |
+| GET     | `/api/v1/queries/analytics/my-top-suppliers` | Top fournisseurs (Neo4j)       | GARAGE, ADMIN   |
+| GET     | `/api/v1/queries/analytics/graph-stats`      | Stats du graphe (Neo4j)        | ADMIN           |
 
 **Recherche de pièces:**
 
@@ -777,8 +777,8 @@ ORDER BY r.totalSpentInCents DESC
                           │    SHIPPED     │─────────┘
                           └────────────────┘   Annulation
                                    │
-            Livraison confirmée    │
-                                   ▼
+            Garage confirme        │
+            la réception           ▼
                           ┌────────────────┐
                           │   DELIVERED    │ ← Stock consommé
                           └────────────────┘
@@ -788,7 +788,7 @@ ORDER BY r.totalSpentInCents DESC
 
 - `PENDING → CONFIRMED` : Seul le fournisseur peut confirmer
 - `CONFIRMED → SHIPPED` : Seul le fournisseur peut expédier
-- `SHIPPED → DELIVERED` : Confirmation de livraison
+- `SHIPPED → DELIVERED` : Le garage confirme la réception
 - `* → CANCELLED` : Garage ou Fournisseur peut annuler (libère le stock)
 
 ---
@@ -854,7 +854,11 @@ curl -X POST "http://localhost:3000/api/v1/orders/$ORDER_ID/confirm" \
 curl -X POST "http://localhost:3000/api/v1/orders/$ORDER_ID/ship" \
   -H "Authorization: Bearer $SUPPLIER_TOKEN"
 
-# 8. Vérifier l'historique dans Neo4j
+# 8. Garage confirme la réception
+curl -X POST "http://localhost:3000/api/v1/orders/$ORDER_ID/deliver" \
+  -H "Authorization: Bearer $GARAGE_TOKEN"
+
+# 9. Vérifier l'historique dans Neo4j
 # Ouvrir http://localhost:7474 et exécuter:
 # MATCH (g:Garage)-[r:ORDERED_FROM]->(s:Supplier) RETURN g, r, s
 ```

@@ -77,6 +77,7 @@ export const authApi = {
 // Parts API
 // =============================================================================
 
+// Part from Query endpoints (MongoDB Read Model)
 export interface Part {
   partId: string;
   reference: string;
@@ -88,6 +89,7 @@ export interface Part {
   priceFormatted: string;
   stock: {
     quantity: number;
+    reserved: number;
     available: number;
     isLow: boolean;
     isOutOfStock: boolean;
@@ -96,12 +98,43 @@ export interface Part {
     id: string;
     name: string;
   };
+  supplierId: string;
   compatibleVehicles: Array<{
     brand: string;
     model: string;
     yearFrom: number;
     yearTo: number;
+    engine?: string;
   }>;
+  isActive: boolean;
+}
+
+// Part from Command endpoints (domain entity response)
+export interface PartCommandResponse {
+  id: string;
+  supplierId: string;
+  reference: string;
+  name: string;
+  description: string;
+  category: string;
+  brand: string;
+  price: number;
+  priceFormatted: string;
+  stock: {
+    quantity: number;
+    reserved: number;
+    available: number;
+  };
+  compatibleVehicles: Array<{
+    brand: string;
+    model: string;
+    yearFrom: number;
+    yearTo: number;
+    engine?: string;
+  }>;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PartsSearchParams {
@@ -170,28 +203,33 @@ export const partsApi = {
   getById: (partId: string) => api.get<PartDetail>(`/queries/parts/${partId}`),
   getMyParts: (params?: { page?: number; limit?: number }) =>
     api.get<PaginatedResponse<Part>>("/queries/my-parts", { params }),
-  create: (data: CreatePartDto) => api.post<Part>("/parts", data),
+  create: (data: CreatePartDto) => api.post<PartCommandResponse>("/parts", data),
   update: (partId: string, data: UpdatePartDto) =>
-    api.put<Part>(`/parts/${partId}`, data),
+    api.put<PartCommandResponse>(`/parts/${partId}`, data),
   addStock: (partId: string, quantity: number) =>
-    api.post<Part>(`/parts/${partId}/stock`, { quantity }),
+    api.post<PartCommandResponse>(`/parts/${partId}/stock`, { quantity }),
 };
 
 // =============================================================================
 // Orders API
 // =============================================================================
 
+// OrderLine from Query endpoints (MongoDB Read Model)
 export interface OrderLine {
   partId: string;
   partName: string;
   partReference: string;
+  supplierId: string;
   supplierName: string;
   quantity: number;
+  unitPriceInCents: number;
   unitPrice: number;
+  totalInCents: number;
   total: number;
   totalFormatted: string;
 }
 
+// Order from Query endpoints (MongoDB Read Model)
 export interface Order {
   orderId: string;
   garage: {
@@ -199,14 +237,47 @@ export interface Order {
     name: string;
   };
   lines: OrderLine[];
+  supplierIds: string[];
   status: string;
+  totalInCents: number;
   total: number;
   totalFormatted: string;
+  notes?: string;
+  cancelReason?: string;
   statusHistory: Array<{
     status: string;
     changedAt: string;
+    changedBy?: string;
+    reason?: string;
   }>;
   createdAt: string;
+}
+
+// OrderLine from Command endpoints
+export interface OrderLineCommandResponse {
+  partId: string;
+  partName: string;
+  partReference: string;
+  supplierId: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  totalFormatted: string;
+}
+
+// Order from Command endpoints (domain entity response)
+export interface OrderCommandResponse {
+  id: string;
+  garageId: string;
+  garageName: string;
+  lines: OrderLineCommandResponse[];
+  status: string;
+  total: number;
+  totalFormatted: string;
+  notes?: string;
+  cancelReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateOrderDto {
@@ -214,19 +285,20 @@ export interface CreateOrderDto {
     partId: string;
     quantity: number;
   }>;
+  notes?: string;
 }
 
 export const ordersApi = {
-  getMyOrders: (params?: { status?: string; page?: number }) =>
+  getMyOrders: (params?: { status?: string; page?: number; limit?: number }) =>
     api.get<PaginatedResponse<Order>>("/queries/my-orders", { params }),
-  getSupplierOrders: (params?: { status?: string; page?: number }) =>
+  getSupplierOrders: (params?: { status?: string; page?: number; limit?: number }) =>
     api.get<PaginatedResponse<Order>>("/queries/supplier-orders", { params }),
-  create: (data: CreateOrderDto) => api.post("/orders", data),
-  confirm: (orderId: string) => api.post(`/orders/${orderId}/confirm`),
-  ship: (orderId: string) => api.post(`/orders/${orderId}/ship`),
-  deliver: (orderId: string) => api.post(`/orders/${orderId}/deliver`),
+  create: (data: CreateOrderDto) => api.post<OrderCommandResponse>("/orders", data),
+  confirm: (orderId: string) => api.post<OrderCommandResponse>(`/orders/${orderId}/confirm`),
+  ship: (orderId: string) => api.post<OrderCommandResponse>(`/orders/${orderId}/ship`),
+  deliver: (orderId: string) => api.post<OrderCommandResponse>(`/orders/${orderId}/deliver`),
   cancel: (orderId: string, reason: string) =>
-    api.post(`/orders/${orderId}/cancel`, { reason }),
+    api.post<OrderCommandResponse>(`/orders/${orderId}/cancel`, { reason }),
 };
 
 // =============================================================================
@@ -248,20 +320,8 @@ export interface TopSupplier {
   totalSpent: number;
 }
 
-export interface VehiclePart {
-  partId: string;
-  name: string;
-  reference: string;
-  price: number;
-  supplierName: string;
-}
-
 export const analyticsApi = {
   getGraphStats: () => api.get<GraphStats>("/queries/analytics/graph-stats"),
   getMyTopSuppliers: () =>
     api.get<TopSupplier[]>("/queries/analytics/my-top-suppliers"),
-  getPartsForVehicle: (brand: string, model: string, year: number) =>
-    api.get<VehiclePart[]>("/queries/analytics/parts-for-vehicle", {
-      params: { brand, model, year },
-    }),
 };
